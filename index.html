@@ -519,7 +519,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
         <p class="hero-lead">Hémorragies, fractures, brûlures, aloe vera, arrêt cardiaque, et l’organisation de la Seimei. Chaque question se joue en quelques secondes : seuls les réflexes acquis tiennent.</p>
         <div class="hero-actions">
           <button type="button" class="btn btn-chakra btn-large" id="btn-passer">Passer l’examen <span class="fleche" aria-hidden="true">→</span></button>
-          <p class="note">Aucune inscription : votre nom et votre prénom suffisent.</p>
+          <p class="note">Aucune inscription : votre prénom et votre nom suffisent.</p>
         </div>
       </div>
       <div class="embleme" aria-hidden="true">
@@ -572,10 +572,10 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
     <form class="carte coins identite" id="form-identite" novalidate>
       <p class="surtitre" data-info="titre">Examen de passage d’observateur à infirmier</p>
       <h2>Identité du candidat</h2>
-      <p class="note">Indiquez votre nom et votre prénom : ils seront transmis à la gérance avec vos réponses.</p>
+      <p class="note">Indiquez votre prénom et votre nom : ils seront transmis à la gérance avec vos réponses.</p>
       <div class="champs">
-        <label class="champ"><input id="champ-nom" name="nom" autocomplete="family-name" maxlength="40" placeholder=" " required><span>Nom</span></label>
         <label class="champ"><input id="champ-prenom" name="prenom" autocomplete="given-name" maxlength="40" placeholder=" " required><span>Prénom</span></label>
+        <label class="champ"><input id="champ-nom" name="nom" autocomplete="family-name" maxlength="40" placeholder=" " required><span>Nom</span></label>
       </div>
       <p class="avertissement"><span class="avertissement-kanji" aria-hidden="true">時</span><span>Le chronomètre démarre dès que vous cliquez sur <b>«&nbsp;Commencer le test&nbsp;»</b>. Restez sur cette page jusqu’à la fin : chaque sortie est signalée à la gérance.</span></p>
       <p class="erreur" id="erreur-identite" role="alert" hidden></p>
@@ -922,7 +922,7 @@ const CONFIG = {
 
   $('btn-passer').addEventListener('click', () => {
     afficher('vue-identite');
-    $('champ-nom').focus();
+    $('champ-prenom').focus();
   });
   $('btn-retour').addEventListener('click', () => afficher('vue-accueil'));
 
@@ -931,8 +931,8 @@ const CONFIG = {
     const nom = $('champ-nom').value.replace(/\s+/g, ' ').trim();
     const prenom = $('champ-prenom').value.replace(/\s+/g, ' ').trim();
     if (!nom || !prenom) {
-      montrerErreur('erreur-identite', 'Indiquez votre nom et votre prénom pour commencer.');
-      (nom ? $('champ-prenom') : $('champ-nom')).focus();
+      montrerErreur('erreur-identite', 'Indiquez votre prénom et votre nom pour commencer.');
+      (prenom ? $('champ-nom') : $('champ-prenom')).focus();
       return;
     }
     cacherErreur('erreur-identite');
