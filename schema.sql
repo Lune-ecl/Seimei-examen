@@ -24,7 +24,7 @@ insert into public.reglages (id) values (1) on conflict (id) do nothing;
 
 -- Banque de questions (remplie par prive/questions.sql)
 create table if not exists public.questions (
-  id       text primary key,                  -- E01… éliminatoires, Q01… cours
+  id       text primary key,                  -- E01… éliminatoires, Q01… non éliminatoires
   type     text not null check (type in ('elim', 'std')),
   theme    text not null,
   texte    text not null,
@@ -375,7 +375,7 @@ begin
     return jsonb_build_object('erreur', v_erreur);
   end if;
   if v_type is null or v_type not in ('elim', 'std') then
-    return jsonb_build_object('erreur', 'Choisis la liste : questions du cours ou éliminatoires.');
+    return jsonb_build_object('erreur', 'Choisis la liste : question non éliminatoire ou éliminatoire.');
   end if;
   if jsonb_typeof(p_question -> 'fausses') = 'array' then
     select coalesce(array_agg(left(btrim(f.x), 200) order by f.n), '{}') into v_fausses
@@ -395,11 +395,7 @@ begin
     return jsonb_build_object('erreur', 'Les quatre réponses doivent être différentes.');
   end if;
   if v_theme = '' then
-    if v_type = 'elim' then
-      v_theme := 'Organisation de la Seimei';
-    else
-      return jsonb_build_object('erreur', 'Indique le thème de la question.');
-    end if;
+    return jsonb_build_object('erreur', 'Indique le thème de la question.');
   end if;
 
   if v_id is null then

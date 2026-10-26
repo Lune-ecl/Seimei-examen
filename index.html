@@ -562,7 +562,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
     </ul>
     <div class="regles">
       <article class="regle"><span class="regle-kanji" aria-hidden="true">時</span><h3>Le temps presse</h3><p><span data-info="secondes">15</span> secondes par question. À zéro, la suivante s’affiche : la réponse cochée compte quand même.</p></article>
-      <article class="regle rouge"><span class="regle-kanji" aria-hidden="true">断</span><h3>Questions éliminatoires</h3><p>Elles portent sur l’organisation de la Seimei. Une seule erreur et l’examen est échoué.</p></article>
+      <article class="regle rouge"><span class="regle-kanji" aria-hidden="true">断</span><h3>Questions éliminatoires</h3><p>Elles portent sur les gestes vitaux : hémorragies, fractures, brûlures, arrêt cardiaque. Une seule erreur et l’examen est échoué.</p></article>
       <article class="regle"><span class="regle-kanji" aria-hidden="true">集</span><h3>Aucun retour en arrière</h3><p>Une réponse validée est définitive. Chaque sortie de la page est signalée à la gérance.</p></article>
     </div>
   </section>
@@ -702,7 +702,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
         <form class="carte coins editeur" id="editeur" novalidate hidden>
           <div class="editeur-tete"><h3 id="editeur-titre">Nouvelle question</h3><span class="qc-id" id="editeur-id"></span></div>
           <div class="ed-type" role="radiogroup" aria-label="Liste de la question">
-            <label class="ed-radio"><input type="radio" name="ed-type" value="std" checked><span>Question du cours<small>Tirée parmi les questions normales</small></span></label>
+            <label class="ed-radio"><input type="radio" name="ed-type" value="std" checked><span>Question non éliminatoire<small>Compte dans la note de l’examen</small></span></label>
             <label class="ed-radio rouge"><input type="radio" name="ed-type" value="elim"><span>Question éliminatoire<small>Une erreur suffit pour échouer à l’examen</small></span></label>
           </div>
           <div class="ed-grille">
@@ -1290,10 +1290,10 @@ const CONFIG = {
     const d = g.donnees || etat.infos;
     if (g.onglet === 'questions') {
       $('g-titre').textContent = 'Banque de questions';
-      $('g-sous').textContent = 'Chaque examen tire ' + d.nbElim + ' questions éliminatoires et ' + d.nbQuestions + ' questions du cours parmi les questions actives.';
+      $('g-sous').textContent = 'Chaque examen tire ' + d.nbElim + ' questions éliminatoires et ' + d.nbQuestions + ' questions non éliminatoires parmi les questions actives.';
     } else {
       $('g-titre').textContent = 'Résultats des examens';
-      $('g-sous').textContent = 'Réussite : au moins ' + d.seuil + ' bonnes réponses sur ' + d.nbQuestions + ' aux questions du cours, sans aucune erreur aux ' + d.nbElim + ' questions éliminatoires.';
+      $('g-sous').textContent = 'Réussite : au moins ' + d.seuil + ' bonnes réponses sur ' + d.nbQuestions + ' aux questions non éliminatoires, sans aucune erreur aux ' + d.nbElim + ' questions éliminatoires.';
     }
   }
 
@@ -1586,13 +1586,13 @@ const CONFIG = {
     const parListe = { std: g.questions.filter((q) => q.type === 'std'), elim: g.questions.filter((q) => q.type === 'elim') };
     const actives = (liste) => parListe[liste].filter((q) => q.actif).length;
 
-    $('b-listes').replaceChildren(...[['std', 'Questions du cours'], ['elim', 'Éliminatoires']].map(([cle, libelle]) => h('button', {
+    $('b-listes').replaceChildren(...[['std', 'Non éliminatoires'], ['elim', 'Éliminatoires']].map(([cle, libelle]) => h('button', {
       type: 'button', class: 'segment' + (cle === 'elim' ? ' rouge' : ''), 'aria-pressed': String(g.liste === cle),
       onclick: () => { g.liste = cle; g.theme = 'tous'; g.qASupprimer = null; rendreBanque(); },
     }, libelle, h('b', null, parListe[cle].length))));
 
     const manques = [];
-    if (actives('std') < d.nbQuestions) manques.push('au moins ' + d.nbQuestions + ' questions du cours actives (il y en a ' + actives('std') + ')');
+    if (actives('std') < d.nbQuestions) manques.push('au moins ' + d.nbQuestions + ' questions non éliminatoires actives (il y en a ' + actives('std') + ')');
     if (actives('elim') < d.nbElim) manques.push('au moins ' + d.nbElim + ' questions éliminatoires actives (il y en a ' + actives('elim') + ')');
     alerte.textContent = manques.length ? 'Attention : il faut ' + manques.join(' et ') + ', sinon les examens auront moins de questions.' : '';
     alerte.hidden = !manques.length;
@@ -1654,7 +1654,7 @@ const CONFIG = {
     $('editeur-id').hidden = !q;
     const type = q ? q.type : g.liste;
     ed.querySelector('input[name="ed-type"][value="' + type + '"]').checked = true;
-    $('ed-theme').value = q ? q.theme : type === 'elim' ? 'Organisation de la Seimei' : g.theme !== 'tous' ? g.theme : '';
+    $('ed-theme').value = q ? q.theme : g.theme !== 'tous' ? g.theme : '';
     $('ed-texte').value = q ? q.texte : '';
     $('ed-bonne').value = q ? q.bonne : '';
     ['ed-f1', 'ed-f2', 'ed-f3'].forEach((id, i) => { $(id).value = q ? q.fausses[i] || '' : ''; });
@@ -1677,10 +1677,6 @@ const CONFIG = {
     etat.gerance.rechercheQ = ev.target.value;
     rendreBanque();
   });
-  $('editeur').addEventListener('change', (ev) => {
-    if (ev.target.name === 'ed-type' && ev.target.value === 'elim' && !$('ed-theme').value.trim()) $('ed-theme').value = 'Organisation de la Seimei';
-  });
-
   $('editeur').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const g = etat.gerance;
