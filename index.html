@@ -349,6 +349,86 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 .detail-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
 .confirmer { margin-right: auto; font-weight: 700; color: var(--ko); }
 
+/* ── Gérance : onglets, réponses détaillées, banque de questions ── */
+.g-onglets { display: flex; flex-wrap: wrap; gap: 6px; width: fit-content; max-width: 100%; margin: -4px 0 24px; padding: 5px; border: 1px solid var(--ligne); border-radius: 14px; background: rgba(11, 23, 21, .78); }
+.g-onglet { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border: 0; border-radius: 10px; background: transparent; color: var(--brume); font-weight: 700; transition: color .2s, background .2s; }
+.g-onglet:hover { color: var(--papier); }
+.g-onglet[aria-selected="true"] { color: var(--papier); background: rgba(220, 187, 124, .14); box-shadow: inset 0 0 0 1px rgba(220, 187, 124, .42); }
+.btn.petit { min-height: 38px; padding: 6px 14px; font-size: .85rem; }
+.rep-verdict { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.rep-ok .rep-verdict { color: var(--ok); }
+.rep-ko .rep-verdict { color: var(--ko); }
+.rep-vide .rep-verdict { color: var(--brume); }
+.rep-options { display: grid; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.rep-option { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--ligne); border-radius: 9px; font-size: .92rem; color: var(--papier-2); }
+.rep-lettre { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--ligne-forte); border-radius: 7px; font: 700 .8rem/1 var(--font-titre); color: var(--sable); }
+.rep-texte { min-width: 0; overflow-wrap: anywhere; }
+.rep-tag { font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.rep-option.bonne { border-color: rgba(85, 230, 179, .5); background: rgba(85, 230, 179, .08); color: var(--papier); }
+.rep-option.bonne .rep-lettre { border-color: transparent; background: var(--chakra); color: var(--chakra-encre); }
+.rep-option.bonne .rep-tag { color: var(--ok); }
+.rep-option.choisie:not(.bonne) { border-color: rgba(255, 122, 99, .55); background: rgba(255, 122, 99, .09); color: var(--papier); }
+.rep-option.choisie:not(.bonne) .rep-lettre { border-color: transparent; background: var(--ko); color: #200704; }
+.rep-option.choisie:not(.bonne) .rep-tag { color: var(--ko); }
+.b-tete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.segments { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.segment { display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border: 1px solid var(--ligne); border-radius: 999px; background: rgba(12, 26, 23, .8); color: var(--papier-2); font-size: .9rem; font-weight: 700; }
+.segment b { font: 600 .82rem var(--font-mono); color: var(--sable); }
+.segment[aria-pressed="true"] { border-color: var(--sable); color: var(--papier); box-shadow: 0 0 26px -12px var(--sable); }
+.segment.rouge[aria-pressed="true"] { border-color: var(--vermillon); box-shadow: 0 0 26px -12px var(--vermillon); }
+.segment.rouge b { color: #ff9c88; }
+.b-statut { margin-bottom: 12px; font-weight: 700; color: var(--ok); }
+#b-alerte { margin-bottom: 14px; }
+.b-filtres { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.b-themes { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--ligne); border-radius: 999px; background: transparent; color: var(--brume); font-size: .82rem; font-weight: 700; }
+.chip:hover { color: var(--papier); border-color: var(--ligne-forte); }
+.chip b { font: 600 .74rem var(--font-mono); }
+.chip[aria-pressed="true"] { border-color: transparent; background: var(--chakra); color: var(--chakra-encre); }
+.banque { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.banque .vide { grid-column: 1 / -1; }
+.qc { display: grid; align-content: start; gap: 10px; padding: 18px; border: 1px solid var(--ligne); border-radius: 14px; background: rgba(11, 24, 21, .84); }
+.qc.inactive { opacity: .62; border-style: dashed; }
+.qc-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.qc-tete .badge-elim { padding: 2px 8px; font-size: .6rem; }
+.qc-tete .q-theme { font-size: .66rem; }
+.qc-tete .pill { padding: 2px 9px; font-size: .7rem; }
+.qc-id { padding: 2px 8px; border: 1px solid var(--ligne-forte); border-radius: 6px; font: 600 .78rem var(--font-mono); color: var(--sable); }
+.qc-stat { margin-left: auto; font: 500 .72rem var(--font-mono); color: var(--brume); }
+.qc-texte { font: 700 1.05rem/1.4 var(--font-titre); }
+.qc-choix { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; font-size: .9rem; color: var(--papier-2); }
+.qc-choix li { display: flex; gap: 8px; }
+.qc-choix li > span:first-child { flex: none; width: 1em; }
+.qc-choix li.ok { color: var(--ok); font-weight: 700; }
+.qc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-top: 10px; border-top: 1px solid var(--ligne); }
+.lien { padding: 4px 0; border: 0; background: none; color: var(--sable); font-size: .86rem; font-weight: 700; }
+.lien:hover { color: var(--papier); text-decoration: underline; text-underline-offset: 3px; }
+.lien:disabled { opacity: .5; cursor: wait; }
+.lien.danger { color: var(--ko); }
+.qc-confirmer { flex-basis: 100%; font-size: .88rem; font-weight: 700; color: var(--ko); }
+.editeur { display: grid; gap: 16px; margin-bottom: 18px; }
+.editeur-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.editeur-tete h3 { font: 700 1.35rem/1.2 var(--font-titre); }
+.ed-type { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ed-radio { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--ligne-forte); border-radius: 12px; background: rgba(6, 13, 12, .55); cursor: pointer; }
+.ed-radio input { margin-top: 4px; accent-color: var(--chakra); }
+.ed-radio.rouge input { accent-color: var(--vermillon); }
+.ed-radio > span { display: grid; gap: 2px; font-weight: 700; }
+.ed-radio small { font-size: .8rem; font-weight: 400; color: var(--brume); }
+.ed-radio:has(input:checked) { border-color: var(--chakra); box-shadow: inset 0 0 0 1px rgba(85, 230, 179, .35); }
+.ed-radio.rouge:has(input:checked) { border-color: var(--vermillon); box-shadow: inset 0 0 0 1px rgba(229, 85, 62, .35); }
+.ed-grille { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ed-large { grid-column: 1 / -1; }
+.champ textarea { display: block; width: 100%; min-height: 86px; padding: 26px 16px 10px; border: 1px solid var(--ligne-forte); border-radius: 12px; background: rgba(6, 13, 12, .65); font: inherit; font-size: 1.02rem; line-height: 1.45; resize: vertical; transition: border-color .2s, box-shadow .2s; }
+.champ textarea:focus { outline: none; border-color: var(--chakra); box-shadow: 0 0 0 4px rgba(85, 230, 179, .12), 0 0 34px -12px rgba(85, 230, 179, .7); }
+.champ textarea:focus + span, .champ textarea:not(:placeholder-shown) + span { transform: translateY(-11px) scale(.74); color: var(--sable); }
+.champ.ed-bonne input { border-color: rgba(85, 230, 179, .45); }
+.champ.ed-bonne input + span { color: var(--ok); }
+.champ.ed-fausse input + span { color: #ffb0a2; }
+.ed-cases { display: grid; gap: 10px; }
+.case { display: flex; align-items: center; gap: 10px; font-size: .92rem; color: var(--papier-2); cursor: pointer; }
+.case input { width: 18px; height: 18px; accent-color: var(--chakra); }
+
 .pied { position: relative; z-index: 2; padding: 26px var(--gouttiere-d) 40px var(--gouttiere-g); text-align: center; font-size: .78rem; letter-spacing: .08em; color: var(--brume); }
 .pied b { font-weight: 700; color: var(--sable); }
 
@@ -368,6 +448,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
   .p-score, .p-elim, .p-duree { order: 5; }
   .saut + .p-score { margin-left: 58px; }
   .chevron { display: none; }
+  .banque { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .tete-int { padding-block: 10px; }
@@ -386,6 +467,10 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
   .aide { display: none; }
   .q-pied { justify-content: flex-end; }
   .lune { top: 14vh; right: 6vw; width: 54px; height: 54px; }
+  .ed-type, .ed-grille { grid-template-columns: 1fr; }
+  .rep-option { grid-template-columns: 28px minmax(0, 1fr); }
+  .rep-tag { grid-column: 2; }
+  .qc-stat { flex-basis: 100%; margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
@@ -572,7 +657,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
       <div class="g-tete">
         <div>
           <p class="surtitre">Espace gérance</p>
-          <h2 class="g-titre">Résultats des examens</h2>
+          <h2 class="g-titre" id="g-titre">Résultats des examens</h2>
           <p class="g-sous" id="g-sous"></p>
         </div>
         <div class="g-actions">
@@ -581,23 +666,71 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
           <button type="button" class="btn btn-sobre" id="btn-verrouiller">Verrouiller</button>
         </div>
       </div>
+      <div class="g-onglets" role="tablist" aria-label="Espace gérance">
+        <button type="button" class="g-onglet" id="g-onglet-resultats" role="tab" aria-selected="true" aria-controls="g-resultats"><span class="nav-kanji" aria-hidden="true">結</span>Résultats</button>
+        <button type="button" class="g-onglet" id="g-onglet-questions" role="tab" aria-selected="false" aria-controls="g-questions"><span class="nav-kanji" aria-hidden="true">問</span>Banque de questions</button>
+      </div>
       <p class="erreur" id="g-erreur" role="alert" hidden></p>
-      <div class="stats" id="g-stats" role="group" aria-label="Filtrer par résultat"></div>
-      <div class="graphes">
-        <article class="carte graphe">
-          <div class="graphe-tete"><h3>Répartition des scores</h3><p class="taux" id="g-taux"></p></div>
-          <div id="g-histo"></div>
-        </article>
-        <article class="carte graphe">
-          <div class="graphe-tete"><h3>Questions les plus ratées</h3></div>
-          <div id="g-ratees"></div>
-        </article>
+
+      <div id="g-resultats" role="tabpanel" aria-labelledby="g-onglet-resultats">
+        <div class="stats" id="g-stats" role="group" aria-label="Filtrer par résultat"></div>
+        <div class="graphes">
+          <article class="carte graphe">
+            <div class="graphe-tete"><h3>Répartition des scores</h3><p class="taux" id="g-taux"></p></div>
+            <div id="g-histo"></div>
+          </article>
+          <article class="carte graphe">
+            <div class="graphe-tete"><h3>Questions les plus ratées</h3></div>
+            <div id="g-ratees"></div>
+          </article>
+        </div>
+        <div class="liste-tete">
+          <h3>Passages</h3>
+          <input type="search" class="recherche" id="g-recherche" placeholder="Rechercher un candidat ou une référence" aria-label="Rechercher un candidat ou une référence">
+        </div>
+        <div class="liste" id="g-liste"></div>
       </div>
-      <div class="liste-tete">
-        <h3>Passages</h3>
-        <input type="search" class="recherche" id="g-recherche" placeholder="Rechercher un candidat ou une référence" aria-label="Rechercher un candidat ou une référence">
+
+      <div id="g-questions" role="tabpanel" aria-labelledby="g-onglet-questions" hidden>
+        <div class="b-tete">
+          <div class="segments" id="b-listes" role="group" aria-label="Liste de questions"></div>
+          <button type="button" class="btn btn-chakra" id="btn-ajouter">+ Ajouter une question</button>
+        </div>
+        <p class="b-statut" id="b-statut" role="status" hidden></p>
+        <p class="alerte" id="b-alerte" role="alert" hidden></p>
+
+        <form class="carte coins editeur" id="editeur" novalidate hidden>
+          <div class="editeur-tete"><h3 id="editeur-titre">Nouvelle question</h3><span class="qc-id" id="editeur-id"></span></div>
+          <div class="ed-type" role="radiogroup" aria-label="Liste de la question">
+            <label class="ed-radio"><input type="radio" name="ed-type" value="std" checked><span>Question du cours<small>Tirée parmi les questions normales</small></span></label>
+            <label class="ed-radio rouge"><input type="radio" name="ed-type" value="elim"><span>Question éliminatoire<small>Une erreur suffit pour échouer à l’examen</small></span></label>
+          </div>
+          <div class="ed-grille">
+            <label class="champ ed-large"><input id="ed-theme" list="ed-themes" maxlength="60" placeholder=" " autocomplete="off"><span>Thème</span></label>
+            <label class="champ ed-large"><textarea id="ed-texte" maxlength="300" rows="2" placeholder=" "></textarea><span>Question</span></label>
+            <label class="champ ed-large ed-bonne"><input id="ed-bonne" maxlength="200" placeholder=" " autocomplete="off"><span>Bonne réponse</span></label>
+            <label class="champ ed-fausse"><input id="ed-f1" maxlength="200" placeholder=" " autocomplete="off"><span>Mauvaise réponse 1</span></label>
+            <label class="champ ed-fausse"><input id="ed-f2" maxlength="200" placeholder=" " autocomplete="off"><span>Mauvaise réponse 2</span></label>
+            <label class="champ ed-fausse"><input id="ed-f3" maxlength="200" placeholder=" " autocomplete="off"><span>Mauvaise réponse 3</span></label>
+          </div>
+          <datalist id="ed-themes"></datalist>
+          <div class="ed-cases">
+            <label class="case"><input type="checkbox" id="ed-actif" checked><span>Active : peut être tirée dans un examen</span></label>
+            <label class="case"><input type="checkbox" id="ed-tri"><span>Réponses chiffrées : les afficher dans l’ordre croissant</span></label>
+          </div>
+          <p class="erreur" id="ed-erreur" role="alert" hidden></p>
+          <div class="actions">
+            <button type="button" class="btn btn-sobre" id="ed-annuler">Annuler</button>
+            <button type="submit" class="btn btn-chakra" id="ed-enregistrer">Enregistrer la question</button>
+          </div>
+        </form>
+
+        <div class="b-filtres">
+          <div class="b-themes" id="b-themes" role="group" aria-label="Filtrer par thème"></div>
+          <input type="search" class="recherche" id="b-recherche" placeholder="Rechercher une question ou une réponse" aria-label="Rechercher une question ou une réponse">
+        </div>
+        <div class="banque" id="b-liste"></div>
       </div>
-      <div class="liste" id="g-liste"></div>
     </div>
   </section>
 </main>
@@ -655,7 +788,11 @@ const CONFIG = {
     minuteur: 0,
     flash: 0,
     sorties: 0,
-    gerance: { code: null, donnees: null, filtre: 'tous', recherche: '', ouvert: null, aSupprimer: null },
+    gerance: {
+      code: null, donnees: null, passages: [], onglet: 'resultats',
+      filtre: 'tous', recherche: '', ouvert: null, aSupprimer: null,
+      questions: null, banqueErreur: null, liste: 'std', theme: 'tous', rechercheQ: '', edition: null, qASupprimer: null,
+    },
   };
 
   // ── Outils ────────────────────────────────────────────────────────────────
@@ -1050,6 +1187,8 @@ const CONFIG = {
       $('form-code').hidden = true;
       $('tableau-gerance').hidden = false;
       rendreGerance();
+      changerOnglet('resultats');
+      chargerBanque();
     } catch (e) {
       montrerErreur('erreur-code', e.message);
       $('champ-code').select();
@@ -1060,8 +1199,11 @@ const CONFIG = {
   });
 
   function verrouiller() {
-    Object.assign(etat.gerance, { code: null, donnees: null, ouvert: null, aSupprimer: null });
+    Object.assign(etat.gerance, { code: null, donnees: null, passages: [], ouvert: null, aSupprimer: null,
+      questions: null, banqueErreur: null, edition: null, qASupprimer: null });
     $('g-liste').replaceChildren();
+    $('b-liste').replaceChildren();
+    $('editeur').hidden = true;
     $('tableau-gerance').hidden = true;
     $('form-code').hidden = false;
     $('champ-code').value = '';
@@ -1076,6 +1218,7 @@ const CONFIG = {
       g.donnees = await appel('lire_resultats', { p_code: g.code });
       cacherErreur('g-erreur');
       rendreGerance();
+      await chargerBanque();
     } catch (e) {
       if (/code d.acc|essais|pas encore défini/i.test(e.message)) {
         verrouiller();
@@ -1118,12 +1261,40 @@ const CONFIG = {
     const d = g.donnees;
     if (!d) return;
     g.passages = preparerPassages(d.passages);
-    $('g-sous').textContent = 'Réussite : au moins ' + d.seuil + ' bonnes réponses sur ' + d.nbQuestions + ', sans aucune erreur aux ' + d.nbElim + ' questions éliminatoires.';
+    majTeteGerance();
     $('g-maj').textContent = 'Mis à jour à ' + heure(Date.now());
     rendreStats();
     rendreHistogramme();
     rendreRatees();
     rendreListe();
+    if (g.questions) rendreBanque();
+  }
+
+  function changerOnglet(onglet) {
+    const g = etat.gerance;
+    const resultats = onglet === 'resultats';
+    g.onglet = onglet;
+    $('g-resultats').hidden = !resultats;
+    $('g-questions').hidden = resultats;
+    $('g-onglet-resultats').setAttribute('aria-selected', String(resultats));
+    $('g-onglet-questions').setAttribute('aria-selected', String(!resultats));
+    majTeteGerance();
+    if (!resultats && !g.questions && !g.banqueErreur) chargerBanque();
+  }
+
+  $('g-onglet-resultats').addEventListener('click', () => changerOnglet('resultats'));
+  $('g-onglet-questions').addEventListener('click', () => changerOnglet('questions'));
+
+  function majTeteGerance() {
+    const g = etat.gerance;
+    const d = g.donnees || etat.infos;
+    if (g.onglet === 'questions') {
+      $('g-titre').textContent = 'Banque de questions';
+      $('g-sous').textContent = 'Chaque examen tire ' + d.nbElim + ' questions éliminatoires et ' + d.nbQuestions + ' questions du cours parmi les questions actives.';
+    } else {
+      $('g-titre').textContent = 'Résultats des examens';
+      $('g-sous').textContent = 'Réussite : au moins ' + d.seuil + ' bonnes réponses sur ' + d.nbQuestions + ' aux questions du cours, sans aucune erreur aux ' + d.nbElim + ' questions éliminatoires.';
+    }
   }
 
   function rendreStats() {
@@ -1189,10 +1360,11 @@ const CONFIG = {
     g.passages.forEach((p) => {
       if (p.statut !== 'Terminé') return;
       p.detail.forEach((r) => {
-        const s = stats.get(r.question) || { question: r.question, n: 0, ko: 0 };
+        const cle = r.qid || r.question;
+        const s = stats.get(cle) || { question: r.question, n: 0, ko: 0 };
         s.n += 1;
         if (!r.correct) s.ko += 1;
-        stats.set(r.question, s);
+        stats.set(cle, s);
       });
     });
     const top = Array.from(stats.values()).filter((s) => s.ko > 0)
@@ -1305,20 +1477,38 @@ const CONFIG = {
     return detail;
   }
 
+  // Une question du passage : les choix dans l’ordre où le candidat les a vus, sa réponse et la bonne.
   function ligneReponse(r, i) {
     const vide = r.reponse == null;
+    const verdict = vide ? 'Sans réponse' : r.correct ? 'Bonne réponse' : 'Mauvaise réponse';
+    let corps;
+    if (Array.isArray(r.options) && r.options.length) {
+      corps = h('ol', { class: 'rep-options' }, r.options.map((o, k) => {
+        const choisie = r.choix === k;
+        const bonne = o === r.bonne;
+        return h('li', { class: 'rep-option' + (bonne ? ' bonne' : '') + (choisie ? ' choisie' : '') },
+          h('span', { class: 'rep-lettre', 'aria-hidden': 'true' }, LETTRES[k]),
+          h('span', { class: 'rep-texte' }, typo(o)),
+          choisie ? h('span', { class: 'rep-tag' }, (bonne ? '✓' : '✗') + ' Réponse donnée')
+            : bonne ? h('span', { class: 'rep-tag' }, 'Bonne réponse') : null);
+      }));
+    } else {
+      corps = [
+        h('p', { class: 'rep-r' },
+          h('span', { 'aria-hidden': 'true' }, vide ? '–' : r.correct ? '✓' : '✗'),
+          h('span', null, vide ? 'Sans réponse' : typo(r.reponse))),
+        !r.correct && h('p', { class: 'rep-bonne' }, 'Bonne réponse : ', h('strong', null, typo(r.bonne))),
+      ];
+    }
     return h('li', { class: 'rep ' + (vide ? 'rep-vide' : r.correct ? 'rep-ok' : 'rep-ko') },
       h('span', { class: 'rep-num' }, deux(i + 1)),
       h('div', { class: 'rep-tete' },
         r.type === 'elim' && h('span', { class: 'badge-elim' }, 'Éliminatoire'),
         h('span', { class: 'q-theme' }, r.theme),
+        h('span', { class: 'rep-verdict' }, verdict),
         h('span', { class: 'rep-temps' }, vide ? 'Temps écoulé' : secondes(r.ms))),
       h('p', { class: 'rep-q' }, typo(r.question)),
-      h('p', { class: 'rep-r' },
-        h('span', { 'aria-hidden': 'true' }, vide ? '–' : r.correct ? '✓' : '✗'),
-        vide ? h('span', null, 'Sans réponse')
-          : h('span', null, h('span', { class: 'sr' }, r.correct ? 'Bonne réponse : ' : 'Mauvaise réponse : '), typo(r.reponse))),
-      !r.correct && h('p', { class: 'rep-bonne' }, 'Bonne réponse : ', h('strong', null, typo(r.bonne))));
+      corps);
   }
 
   async function supprimer(id, bouton) {
@@ -1330,6 +1520,222 @@ const CONFIG = {
       g.aSupprimer = null;
       g.ouvert = null;
       await actualiser();
+    } catch (e) {
+      bouton.disabled = false;
+      bouton.textContent = 'Supprimer';
+      montrerErreur('g-erreur', 'Suppression impossible : ' + e.message);
+    }
+  }
+
+  // ── Gérance : banque de questions ─────────────────────────────────────────
+  const BANQUE_ABSENTE = 'La banque de questions n’est pas encore activée : relance schema.sql dans Supabase (SQL Editor → Run).';
+  let minuteurStatut = 0;
+
+  async function chargerBanque() {
+    const g = etat.gerance;
+    if (!g.code) return;
+    try {
+      const d = await appel('lire_questions', { p_code: g.code });
+      g.questions = d.questions || [];
+      g.banqueErreur = null;
+    } catch (e) {
+      g.questions = null;
+      g.banqueErreur = /pas encore installée/.test(e.message) ? BANQUE_ABSENTE : e.message;
+    }
+    rendreBanque();
+  }
+
+  function montrerStatut(texte) {
+    const s = $('b-statut');
+    s.textContent = texte;
+    s.hidden = false;
+    clearTimeout(minuteurStatut);
+    minuteurStatut = setTimeout(() => { s.hidden = true; }, 4000);
+  }
+
+  // Combien de fois chaque question a été posée et réussie (examens terminés).
+  function statsParQuestion() {
+    const stats = new Map();
+    (etat.gerance.passages || []).forEach((p) => {
+      if (p.statut !== 'Terminé') return;
+      p.detail.forEach((r) => {
+        const cle = r.qid || 'texte:' + r.question;
+        const s = stats.get(cle) || { n: 0, ok: 0 };
+        s.n += 1;
+        if (r.correct) s.ok += 1;
+        stats.set(cle, s);
+      });
+    });
+    return stats;
+  }
+
+  function rendreBanque() {
+    const g = etat.gerance;
+    const alerte = $('b-alerte');
+    if (!g.questions) {
+      $('btn-ajouter').disabled = true;
+      $('b-listes').replaceChildren();
+      $('b-themes').replaceChildren();
+      $('b-liste').replaceChildren(g.banqueErreur ? '' : h('p', { class: 'vide' }, 'Chargement de la banque de questions…'));
+      alerte.textContent = g.banqueErreur || '';
+      alerte.hidden = !g.banqueErreur;
+      return;
+    }
+    $('btn-ajouter').disabled = false;
+    const d = g.donnees || etat.infos;
+    const parListe = { std: g.questions.filter((q) => q.type === 'std'), elim: g.questions.filter((q) => q.type === 'elim') };
+    const actives = (liste) => parListe[liste].filter((q) => q.actif).length;
+
+    $('b-listes').replaceChildren(...[['std', 'Questions du cours'], ['elim', 'Éliminatoires']].map(([cle, libelle]) => h('button', {
+      type: 'button', class: 'segment' + (cle === 'elim' ? ' rouge' : ''), 'aria-pressed': String(g.liste === cle),
+      onclick: () => { g.liste = cle; g.theme = 'tous'; g.qASupprimer = null; rendreBanque(); },
+    }, libelle, h('b', null, parListe[cle].length))));
+
+    const manques = [];
+    if (actives('std') < d.nbQuestions) manques.push('au moins ' + d.nbQuestions + ' questions du cours actives (il y en a ' + actives('std') + ')');
+    if (actives('elim') < d.nbElim) manques.push('au moins ' + d.nbElim + ' questions éliminatoires actives (il y en a ' + actives('elim') + ')');
+    alerte.textContent = manques.length ? 'Attention : il faut ' + manques.join(' et ') + ', sinon les examens auront moins de questions.' : '';
+    alerte.hidden = !manques.length;
+
+    const questions = parListe[g.liste];
+    const themes = Array.from(new Set(questions.map((q) => q.theme))).sort((a, b) => a.localeCompare(b, 'fr'));
+    if (g.theme !== 'tous' && !themes.includes(g.theme)) g.theme = 'tous';
+    $('b-themes').replaceChildren(...(themes.length > 1 ? ['tous'].concat(themes) : []).map((t) => h('button', {
+      type: 'button', class: 'chip', 'aria-pressed': String(g.theme === t),
+      onclick: () => { g.theme = t; rendreBanque(); },
+    }, t === 'tous' ? 'Tous les thèmes' : t, h('b', null, t === 'tous' ? questions.length : questions.filter((q) => q.theme === t).length))));
+
+    const recherche = normaliser(g.rechercheQ);
+    const visibles = questions.filter((q) => (g.theme === 'tous' || q.theme === g.theme) &&
+      (!recherche || normaliser([q.id, q.theme, q.texte, q.bonne].concat(q.fausses).join(' ')).includes(recherche)));
+    const stats = statsParQuestion();
+    $('b-liste').replaceChildren(...(visibles.length
+      ? visibles.map((q) => carteQuestion(q, stats))
+      : [h('p', { class: 'vide' }, questions.length ? 'Aucune question ne correspond à cette recherche.' : 'Aucune question dans cette liste pour l’instant.')]));
+  }
+
+  function carteQuestion(q, stats) {
+    const g = etat.gerance;
+    const s = stats.get(q.id) || stats.get('texte:' + q.texte);
+    const actions = h('div', { class: 'qc-actions' });
+    if (g.qASupprimer === q.id) {
+      actions.append(
+        h('span', { class: 'qc-confirmer' }, 'Supprimer définitivement cette question ? Les résultats déjà enregistrés la gardent.'),
+        h('button', { type: 'button', class: 'btn btn-sobre petit', onclick: () => { g.qASupprimer = null; rendreBanque(); } }, 'Annuler'),
+        h('button', { type: 'button', class: 'btn btn-danger plein petit', onclick: (ev) => supprimerQuestion(q.id, ev.currentTarget) }, 'Supprimer'));
+    } else {
+      actions.append(
+        h('button', { type: 'button', class: 'lien', onclick: () => ouvrirEditeur(q) }, 'Modifier'),
+        h('button', { type: 'button', class: 'lien', onclick: (ev) => basculerActif(q, ev.currentTarget) }, q.actif ? 'Désactiver' : 'Réactiver'),
+        h('button', { type: 'button', class: 'lien danger', onclick: () => { g.qASupprimer = q.id; rendreBanque(); } }, 'Supprimer'));
+    }
+    return h('article', { class: 'qc' + (q.actif ? '' : ' inactive') },
+      h('div', { class: 'qc-tete' },
+        h('span', { class: 'qc-id' }, q.id),
+        q.type === 'elim' && h('span', { class: 'badge-elim' }, 'Éliminatoire'),
+        h('span', { class: 'q-theme' }, q.theme),
+        !q.actif && h('span', { class: 'pill t-interrompu' }, 'Désactivée'),
+        h('span', { class: 'qc-stat' }, s ? 'Posée ' + s.n + ' fois · ' + Math.round((100 * s.ok) / s.n) + ' % de réussite' : 'Jamais posée')),
+      h('p', { class: 'qc-texte' }, typo(q.texte)),
+      h('ul', { class: 'qc-choix' },
+        h('li', { class: 'ok' }, h('span', { 'aria-hidden': 'true' }, '✓'), h('span', null, h('span', { class: 'sr' }, 'Bonne réponse : '), typo(q.bonne))),
+        q.fausses.map((f) => h('li', null, h('span', { 'aria-hidden': 'true' }, '✗'), h('span', null, h('span', { class: 'sr' }, 'Mauvaise réponse : '), typo(f))))),
+      actions);
+  }
+
+  function ouvrirEditeur(q) {
+    const g = etat.gerance;
+    const ed = $('editeur');
+    g.edition = q ? q.id : 'nouvelle';
+    ed.reset();
+    cacherErreur('ed-erreur');
+    $('editeur-titre').textContent = q ? 'Modifier la question' : 'Nouvelle question';
+    $('editeur-id').textContent = q ? q.id : '';
+    $('editeur-id').hidden = !q;
+    const type = q ? q.type : g.liste;
+    ed.querySelector('input[name="ed-type"][value="' + type + '"]').checked = true;
+    $('ed-theme').value = q ? q.theme : type === 'elim' ? 'Organisation de la Seimei' : g.theme !== 'tous' ? g.theme : '';
+    $('ed-texte').value = q ? q.texte : '';
+    $('ed-bonne').value = q ? q.bonne : '';
+    ['ed-f1', 'ed-f2', 'ed-f3'].forEach((id, i) => { $(id).value = q ? q.fausses[i] || '' : ''; });
+    $('ed-actif').checked = q ? q.actif : true;
+    $('ed-tri').checked = q ? q.triNum : false;
+    $('ed-themes').replaceChildren(...Array.from(new Set((g.questions || []).map((x) => x.theme))).map((t) => h('option', { value: t })));
+    ed.hidden = false;
+    ed.scrollIntoView({ behavior: mouvementReduit.matches ? 'auto' : 'smooth', block: 'start' });
+    $('ed-texte').focus({ preventScroll: true });
+  }
+
+  function fermerEditeur() {
+    etat.gerance.edition = null;
+    $('editeur').hidden = true;
+  }
+
+  $('btn-ajouter').addEventListener('click', () => ouvrirEditeur(null));
+  $('ed-annuler').addEventListener('click', fermerEditeur);
+  $('b-recherche').addEventListener('input', (ev) => {
+    etat.gerance.rechercheQ = ev.target.value;
+    rendreBanque();
+  });
+  $('editeur').addEventListener('change', (ev) => {
+    if (ev.target.name === 'ed-type' && ev.target.value === 'elim' && !$('ed-theme').value.trim()) $('ed-theme').value = 'Organisation de la Seimei';
+  });
+
+  $('editeur').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const g = etat.gerance;
+    const question = {
+      id: g.edition && g.edition !== 'nouvelle' ? g.edition : null,
+      type: $('editeur').querySelector('input[name="ed-type"]:checked').value,
+      theme: $('ed-theme').value,
+      texte: $('ed-texte').value,
+      bonne: $('ed-bonne').value,
+      fausses: [$('ed-f1').value, $('ed-f2').value, $('ed-f3').value],
+      actif: $('ed-actif').checked,
+      triNum: $('ed-tri').checked,
+    };
+    cacherErreur('ed-erreur');
+    const bouton = $('ed-enregistrer');
+    bouton.disabled = true;
+    bouton.textContent = 'Enregistrement…';
+    try {
+      const res = await appel('enregistrer_question', { p_code: g.code, p_question: question });
+      fermerEditeur();
+      g.liste = question.type;
+      g.rechercheQ = '';
+      $('b-recherche').value = '';
+      await chargerBanque();
+      montrerStatut('Question ' + res.id + (question.id ? ' modifiée.' : ' ajoutée à la banque.'));
+    } catch (e) {
+      montrerErreur('ed-erreur', e.message);
+    } finally {
+      bouton.disabled = false;
+      bouton.textContent = 'Enregistrer la question';
+    }
+  });
+
+  async function basculerActif(q, bouton) {
+    bouton.disabled = true;
+    try {
+      await appel('enregistrer_question', { p_code: etat.gerance.code, p_question: Object.assign({}, q, { actif: !q.actif }) });
+      await chargerBanque();
+      montrerStatut('Question ' + q.id + (q.actif ? ' désactivée : elle ne sera plus tirée.' : ' réactivée.'));
+    } catch (e) {
+      bouton.disabled = false;
+      montrerErreur('g-erreur', e.message);
+    }
+  }
+
+  async function supprimerQuestion(id, bouton) {
+    const g = etat.gerance;
+    bouton.disabled = true;
+    bouton.textContent = 'Suppression…';
+    try {
+      await appel('supprimer_question', { p_code: g.code, p_id: id });
+      g.qASupprimer = null;
+      if (g.edition === id) fermerEditeur();
+      await chargerBanque();
+      montrerStatut('Question ' + id + ' supprimée.');
     } catch (e) {
       bouton.disabled = false;
       bouton.textContent = 'Supprimer';

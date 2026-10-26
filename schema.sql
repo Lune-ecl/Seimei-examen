@@ -245,8 +245,9 @@ begin
     end if;
     select * into q from public.questions where id = t.item ->> 'id';
     if q.id is null then
-      v_detail := v_detail || jsonb_build_object('type', v_type, 'theme', '—',
-        'question', '(question retirée de la banque)', 'reponse', null, 'bonne', '—', 'correct', false, 'ms', 0);
+      v_detail := v_detail || jsonb_build_object('qid', t.item ->> 'id', 'type', v_type, 'theme', '—',
+        'question', '(question retirée de la banque)', 'options', null, 'choix', null,
+        'reponse', null, 'bonne', '—', 'correct', false, 'ms', 0);
       continue;
     end if;
 
@@ -264,7 +265,11 @@ begin
     if v_ok then
       if v_type = 'elim' then v_elim := v_elim + 1; else v_score := v_score + 1; end if;
     end if;
-    v_detail := v_detail || jsonb_build_object('type', v_type, 'theme', q.theme, 'question', q.texte,
+    -- options : les choix dans l'ordre où le candidat les a vus ; choix : la position qu'il a cochée
+    v_detail := v_detail || jsonb_build_object('qid', q.id, 'type', v_type, 'theme', q.theme, 'question', q.texte,
+      'options', (select jsonb_agg(v_choix[o.k::int] order by o.n)
+                    from jsonb_array_elements_text(t.item -> 'ordre') with ordinality as o(k, n)),
+      'choix', case when v_k is null then null else v_c end,
       'reponse', case when v_k is null then null else v_choix[v_k] end,
       'bonne', q.bonne, 'correct', v_ok, 'ms', least(v_ms, v_limite));
   end loop;
@@ -330,7 +335,108 @@ begin
 end $$;
 
 -- =============================================================
---  Droits : le site (rôle anon) n'appelle que les 5 fonctions publiques
+--  Banque de questions (onglet Gérance → Banque de questions)
+-- =============================================================
+
+create or replace function public.lire_questions(p_code text)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $$
+declare
+  v_erreur text := public.seimei_controle_code(p_code);
+begin
+  if v_erreur is not null then
+    return jsonb_build_object('erreur', v_erreur);
+  end if;
+  return jsonb_build_object('questions', coalesce((
+    select jsonb_agg(jsonb_build_object('id', q.id, 'type', q.type, 'theme', q.theme, 'texte', q.texte,
+      'bonne', q.bonne, 'fausses', to_jsonb(q.fausses), 'triNum', q.tri_num, 'actif', q.actif)
+      order by q.type, length(q.id), q.id)
+    from public.questions q), '[]'));
+end $$;
+
+-- Ajoute une question (sans « id ») ou modifie celle dont l'id est donné.
+-- p_question = {"id", "type": "elim"|"std", "theme", "texte", "bonne", "fausses": [3 textes], "triNum", "actif"}
+create or replace function public.enregistrer_question(p_code text, p_question jsonb)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $$
+declare
+  v_erreur  text := public.seimei_controle_code(p_code);
+  v_id      text := nullif(btrim(coalesce(p_question ->> 'id', '')), '');
+  v_type    text := p_question ->> 'type';
+  v_theme   text := left(btrim(coalesce(p_question ->> 'theme', '')), 60);
+  v_texte   text := left(btrim(coalesce(p_question ->> 'texte', '')), 300);
+  v_bonne   text := left(btrim(coalesce(p_question ->> 'bonne', '')), 200);
+  v_tri     boolean := coalesce(p_question ->> 'triNum', 'false') = 'true';
+  v_actif   boolean := coalesce(p_question ->> 'actif', 'true') = 'true';
+  v_fausses text[] := '{}';
+  v_prefixe text;
+begin
+  if v_erreur is not null then
+    return jsonb_build_object('erreur', v_erreur);
+  end if;
+  if v_type is null or v_type not in ('elim', 'std') then
+    return jsonb_build_object('erreur', 'Choisis la liste : questions du cours ou éliminatoires.');
+  end if;
+  if jsonb_typeof(p_question -> 'fausses') = 'array' then
+    select coalesce(array_agg(left(btrim(f.x), 200) order by f.n), '{}') into v_fausses
+      from jsonb_array_elements_text(p_question -> 'fausses') with ordinality as f(x, n)
+      where btrim(f.x) <> '';
+  end if;
+  if v_texte = '' then
+    return jsonb_build_object('erreur', 'Écris la question.');
+  end if;
+  if v_bonne = '' then
+    return jsonb_build_object('erreur', 'Indique la bonne réponse.');
+  end if;
+  if cardinality(v_fausses) <> 3 then
+    return jsonb_build_object('erreur', 'Indique trois mauvaises réponses.');
+  end if;
+  if (select count(distinct lower(x)) from unnest(array[v_bonne] || v_fausses) as x) <> 4 then
+    return jsonb_build_object('erreur', 'Les quatre réponses doivent être différentes.');
+  end if;
+  if v_theme = '' then
+    if v_type = 'elim' then
+      v_theme := 'Organisation de la Seimei';
+    else
+      return jsonb_build_object('erreur', 'Indique le thème de la question.');
+    end if;
+  end if;
+
+  if v_id is null then
+    v_prefixe := case when v_type = 'elim' then 'E' else 'Q' end;
+    select v_prefixe || lpad((coalesce(max(substring(id from 2)::int), 0) + 1)::text, 2, '0')
+      into v_id
+      from public.questions where id ~ ('^' || v_prefixe || '[0-9]{1,6}$');
+    insert into public.questions (id, type, theme, texte, bonne, fausses, tri_num, actif)
+      values (v_id, v_type, v_theme, v_texte, v_bonne, v_fausses, v_tri, v_actif);
+  else
+    update public.questions
+      set type = v_type, theme = v_theme, texte = v_texte, bonne = v_bonne,
+          fausses = v_fausses, tri_num = v_tri, actif = v_actif
+      where id = v_id;
+    if not found then
+      return jsonb_build_object('erreur', 'Cette question n’existe plus : actualise la liste.');
+    end if;
+  end if;
+  return jsonb_build_object('ok', true, 'id', v_id);
+end $$;
+
+-- Les résultats déjà enregistrés gardent le texte de la question supprimée.
+create or replace function public.supprimer_question(p_code text, p_id text)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $$
+declare
+  v_erreur text := public.seimei_controle_code(p_code);
+begin
+  if v_erreur is not null then
+    return jsonb_build_object('erreur', v_erreur);
+  end if;
+  delete from public.questions where id = p_id;
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- =============================================================
+--  Droits : le site (rôle anon) n'appelle que les fonctions publiques
 -- =============================================================
 revoke execute on function
   public.seimei_nettoyer(text), public.seimei_premier_nombre(text), public.seimei_empreinte(text),
@@ -340,7 +446,8 @@ revoke execute on function
 
 grant execute on function
   public.infos_examen(), public.demarrer_examen(text, text), public.terminer_examen(text, jsonb, int),
-  public.lire_resultats(text), public.supprimer_passage(text, text)
+  public.lire_resultats(text), public.supprimer_passage(text, text),
+  public.lire_questions(text), public.enregistrer_question(text, jsonb), public.supprimer_question(text, text)
   to anon, authenticated;
 
 notify pgrst, 'reload schema';
