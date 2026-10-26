@@ -15,12 +15,18 @@ create table if not exists public.reglages (
   titre                 text not null default 'Examen de passage d’observateur à infirmier',
   nb_eliminatoires      int  not null default 2  check (nb_eliminatoires between 0 and 10),
   nb_questions          int  not null default 15 check (nb_questions between 1 and 60),
-  secondes_par_question int  not null default 15 check (secondes_par_question between 5 and 120),
+  secondes_par_question int  not null default 20 check (secondes_par_question between 5 and 45),
   seuil_reussite        int  not null default 12,       -- bonnes réponses minimum sur nb_questions
   afficher_resultat     boolean not null default false, -- true : le candidat voit son résultat à la fin
   code_gerance_hash     text                            -- empreinte du code, jamais le code lui-même
 );
 insert into public.reglages (id) values (1) on conflict (id) do nothing;
+
+-- Temps par question : réglable dans la gérance, de 5 à 45 secondes
+update public.reglages set secondes_par_question = 45 where secondes_par_question > 45;
+alter table public.reglages alter column secondes_par_question set default 20;
+alter table public.reglages drop constraint if exists reglages_secondes_par_question_check;
+alter table public.reglages add constraint reglages_secondes_par_question_check check (secondes_par_question between 5 and 45);
 
 -- Banque de questions (remplie par prive/questions.sql)
 create table if not exists public.questions (
@@ -49,9 +55,11 @@ create table if not exists public.passages (
   duree     int,                              -- secondes entre le début et l'envoi
   sorties   int  not null default 0,          -- sorties de la page pendant l'examen
   alertes   text not null default '',
-  detail    jsonb                             -- question, réponse donnée, bonne réponse, temps
+  detail    jsonb,                            -- question, réponse donnée, bonne réponse, temps
+  secondes  int                               -- temps par question en vigueur au démarrage
 );
 create index if not exists passages_par_debut on public.passages (debut desc);
+alter table public.passages add column if not exists secondes int;
 
 -- Essais ratés du code de la gérance (freine les essais à répétition)
 create table if not exists public.essais_code (
@@ -59,13 +67,29 @@ create table if not exists public.essais_code (
   le  timestamptz not null default now()
 );
 
+-- Changements ponctuels déjà appliqués : un nouveau lancement du script ne les refait pas
+create table if not exists public.migrations (
+  nom text primary key,
+  le  timestamptz not null default now()
+);
+
+-- Temps par question passé de 15 à 20 secondes, une seule fois ; ensuite la gérance le règle
+do $$
+begin
+  insert into public.migrations (nom) values ('temps-20-secondes');
+  update public.reglages set secondes_par_question = 20 where id = 1;
+exception when unique_violation then
+  null;
+end $$;
+
 -- Sécurité : personne ne lit ni n'écrit les tables directement.
 -- Le site passe uniquement par les fonctions plus bas.
 alter table public.reglages    enable row level security;
 alter table public.questions   enable row level security;
 alter table public.passages    enable row level security;
 alter table public.essais_code enable row level security;
-revoke all on table public.reglages, public.questions, public.passages, public.essais_code from anon, authenticated;
+alter table public.migrations  enable row level security;
+revoke all on table public.reglages, public.questions, public.passages, public.essais_code, public.migrations from anon, authenticated;
 
 -- =============================================================
 --  Outils internes (non appelables depuis le site)
@@ -196,7 +220,8 @@ begin
   end if;
 
   v_id := 'EX-' || upper(substr(md5(random()::text || clock_timestamp()::text), 1, 8));
-  insert into public.passages (id, nom, prenom, tirage) values (v_id, v_nom, v_prenom, v_tirage);
+  insert into public.passages (id, nom, prenom, tirage, secondes)
+    values (v_id, v_nom, v_prenom, v_tirage, r.secondes_par_question);
   return jsonb_build_object('id', v_id, 'secondes', r.secondes_par_question, 'questions', v_liste);
 end $$;
 
@@ -236,7 +261,8 @@ begin
     return public.seimei_reponse_candidat(p.id, p.resultat, p.score, p.elim);
   end if;
   select * into r from public.reglages where id = 1;
-  v_limite := r.secondes_par_question * 1000;
+  -- le temps en vigueur quand le candidat a commencé (le réglage a pu changer depuis)
+  v_limite := coalesce(p.secondes, r.secondes_par_question) * 1000;
 
   for t in select e.item, e.n from jsonb_array_elements(p.tirage) with ordinality as e(item, n) loop
     v_type := t.item ->> 'type';
@@ -275,7 +301,7 @@ begin
   end loop;
 
   v_duree := round(extract(epoch from now() - p.debut))::int;
-  v_max := jsonb_array_length(p.tirage) * r.secondes_par_question + 60;
+  v_max := jsonb_array_length(p.tirage) * (v_limite / 1000) + 60;
   if v_duree > v_max then
     v_alertes := v_alertes || format('Envoi tardif : %s s entre le début et l’envoi (%s s au maximum attendus)', v_duree, v_max);
   end if;
@@ -316,7 +342,7 @@ begin
         'debut', floor(extract(epoch from p.debut) * 1000),
         'fin', floor(extract(epoch from p.fin) * 1000),
         'score', p.score, 'elim', p.elim, 'resultat', p.resultat, 'duree', p.duree,
-        'sorties', p.sorties, 'alertes', p.alertes, 'detail', coalesce(p.detail, '[]'))
+        'sorties', p.sorties, 'alertes', p.alertes, 'secondes', p.secondes, 'detail', coalesce(p.detail, '[]'))
         order by p.debut desc)
       from public.passages p), '[]'));
 end $$;
@@ -432,6 +458,34 @@ begin
 end $$;
 
 -- =============================================================
+--  Réglages (onglet Gérance → Réglages)
+-- =============================================================
+
+-- p_reglages = {"secondes": 5 à 45}. S'applique aux examens commencés ensuite.
+create or replace function public.modifier_reglages(p_code text, p_reglages jsonb)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $$
+declare
+  v_erreur   text := public.seimei_controle_code(p_code);
+  v_secondes numeric;
+begin
+  if v_erreur is not null then
+    return jsonb_build_object('erreur', v_erreur);
+  end if;
+  if p_reglages ? 'secondes' then
+    if jsonb_typeof(p_reglages -> 'secondes') <> 'number' then
+      return jsonb_build_object('erreur', 'Indique un nombre de secondes.');
+    end if;
+    v_secondes := round((p_reglages ->> 'secondes')::numeric);
+    if v_secondes < 5 or v_secondes > 45 then
+      return jsonb_build_object('erreur', 'Le temps par question doit être compris entre 5 et 45 secondes.');
+    end if;
+    update public.reglages set secondes_par_question = v_secondes::int where id = 1;
+  end if;
+  return (select jsonb_build_object('ok', true, 'secondes', secondes_par_question) from public.reglages where id = 1);
+end $$;
+
+-- =============================================================
 --  Droits : le site (rôle anon) n'appelle que les fonctions publiques
 -- =============================================================
 revoke execute on function
@@ -443,7 +497,8 @@ revoke execute on function
 grant execute on function
   public.infos_examen(), public.demarrer_examen(text, text), public.terminer_examen(text, jsonb, int),
   public.lire_resultats(text), public.supprimer_passage(text, text),
-  public.lire_questions(text), public.enregistrer_question(text, jsonb), public.supprimer_question(text, text)
+  public.lire_questions(text), public.enregistrer_question(text, jsonb), public.supprimer_question(text, text),
+  public.modifier_reglages(text, jsonb)
   to anon, authenticated;
 
 notify pgrst, 'reload schema';

@@ -425,6 +425,20 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 .champ.ed-bonne input { border-color: rgba(85, 230, 179, .45); }
 .champ.ed-bonne input + span { color: var(--ok); }
 .champ.ed-fausse input + span { color: #ffb0a2; }
+.reglage { display: grid; gap: 18px; max-width: 760px; }
+.reglage-tete { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; }
+.reglage-tete h3 { margin-bottom: 6px; font: 700 1.35rem/1.2 var(--font-titre); }
+.reglage-tete .note { max-width: 30rem; }
+.reglage-valeur { display: flex; align-items: baseline; gap: 8px; }
+.reglage-valeur strong { font: 800 3.4rem/1 var(--font-titre); color: var(--chakra); text-shadow: 0 0 30px rgba(85, 230, 179, .45); font-variant-numeric: tabular-nums; }
+.reglage-valeur small { font-size: .7rem; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--brume); }
+.curseur { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; margin: 8px 0 0; border-radius: 999px; background: linear-gradient(90deg, var(--chakra) var(--pct, 37.5%), rgba(222, 196, 140, .18) var(--pct, 37.5%)); cursor: pointer; }
+.curseur::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border: 3px solid var(--chakra); border-radius: 50%; background: #bff8e3; box-shadow: 0 0 18px rgba(85, 230, 179, .85); }
+.curseur::-moz-range-thumb { width: 20px; height: 20px; border: 3px solid var(--chakra); border-radius: 50%; background: #bff8e3; box-shadow: 0 0 18px rgba(85, 230, 179, .85); }
+.curseur:focus-visible { outline: 2px solid var(--chakra); outline-offset: 8px; }
+.echelle { display: flex; justify-content: space-between; font: 500 .74rem var(--font-mono); color: var(--brume); }
+.presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.presets-lib { margin-right: 4px; font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--sable); }
 .ed-cases { display: grid; gap: 10px; }
 .case { display: flex; align-items: center; gap: 10px; font-size: .92rem; color: var(--papier-2); cursor: pointer; }
 .case input { width: 18px; height: 18px; accent-color: var(--chakra); }
@@ -556,12 +570,12 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 
     <ul class="faits">
       <li><strong data-info="total">17</strong><span>questions</span></li>
-      <li><strong><span data-info="secondes">15</span><small>s</small></strong><span>par question</span></li>
+      <li><strong><span data-info="secondes">20</span><small>s</small></strong><span>par question</span></li>
       <li class="rouge"><strong data-info="nbElim">2</strong><span>éliminatoires</span></li>
       <li><strong>QCU</strong><span>une seule bonne réponse</span></li>
     </ul>
     <div class="regles">
-      <article class="regle"><span class="regle-kanji" aria-hidden="true">時</span><h3>Le temps presse</h3><p><span data-info="secondes">15</span> secondes par question. À zéro, la suivante s’affiche : la réponse cochée compte quand même.</p></article>
+      <article class="regle"><span class="regle-kanji" aria-hidden="true">時</span><h3>Le temps presse</h3><p><span data-info="secondes">20</span> secondes par question. À zéro, la suivante s’affiche : la réponse cochée compte quand même.</p></article>
       <article class="regle rouge"><span class="regle-kanji" aria-hidden="true">断</span><h3>Questions éliminatoires</h3><p>Elles portent sur les gestes vitaux : hémorragies, fractures, brûlures, arrêt cardiaque. Une seule erreur et l’examen est échoué.</p></article>
       <article class="regle"><span class="regle-kanji" aria-hidden="true">集</span><h3>Aucun retour en arrière</h3><p>Une réponse validée est définitive. Chaque sortie de la page est signalée à la gérance.</p></article>
     </div>
@@ -596,7 +610,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
             <circle class="chrono-graduation" cx="60" cy="60" r="58"/>
             <circle class="chrono-arc" id="chrono-arc" cx="60" cy="60" r="52"/>
           </svg>
-          <div class="chrono-centre"><span class="chrono-s" id="chrono-s">15</span><span class="chrono-unite">secondes</span></div>
+          <div class="chrono-centre"><span class="chrono-s" id="chrono-s">20</span><span class="chrono-unite">secondes</span></div>
         </div>
         <p class="compteur"><span class="compteur-lib">Question</span><span class="compteur-nb"><span id="q-num">01</span> <small>/ <span id="q-total">17</span></small></span></p>
         <ol class="progression" id="progression" aria-hidden="true"></ol>
@@ -669,6 +683,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
       <div class="g-onglets" role="tablist" aria-label="Espace gérance">
         <button type="button" class="g-onglet" id="g-onglet-resultats" role="tab" aria-selected="true" aria-controls="g-resultats"><span class="nav-kanji" aria-hidden="true">結</span>Résultats</button>
         <button type="button" class="g-onglet" id="g-onglet-questions" role="tab" aria-selected="false" aria-controls="g-questions"><span class="nav-kanji" aria-hidden="true">問</span>Banque de questions</button>
+        <button type="button" class="g-onglet" id="g-onglet-reglages" role="tab" aria-selected="false" aria-controls="g-reglages"><span class="nav-kanji" aria-hidden="true">時</span>Réglages</button>
       </div>
       <p class="erreur" id="g-erreur" role="alert" hidden></p>
 
@@ -731,6 +746,28 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
         </div>
         <div class="banque" id="b-liste"></div>
       </div>
+
+      <div id="g-reglages" role="tabpanel" aria-labelledby="g-onglet-reglages" hidden>
+        <form class="carte coins reglage" id="form-temps" novalidate>
+          <div class="reglage-tete">
+            <div>
+              <h3>Temps par question</h3>
+              <p class="note">Le chronomètre de chaque question, de 5 à 45 secondes. Le changement s’applique aux examens commencés après l’enregistrement.</p>
+            </div>
+            <p class="reglage-valeur" aria-live="polite"><strong id="temps-valeur">20</strong><small>secondes</small></p>
+          </div>
+          <input type="range" class="curseur" id="temps-curseur" min="5" max="45" step="1" value="20" aria-label="Temps par question, en secondes">
+          <div class="echelle" aria-hidden="true"><span>5 s</span><span>15 s</span><span>25 s</span><span>35 s</span><span>45 s</span></div>
+          <div class="presets" id="temps-presets" role="group" aria-label="Choix rapides"></div>
+          <p class="note" id="temps-total"></p>
+          <p class="erreur" id="erreur-temps" role="alert" hidden></p>
+          <p class="b-statut" id="statut-temps" role="status" hidden></p>
+          <div class="actions">
+            <button type="button" class="btn btn-sobre" id="temps-annuler" disabled>Annuler</button>
+            <button type="submit" class="btn btn-chakra" id="temps-enregistrer" disabled>Enregistrer</button>
+          </div>
+        </form>
+      </div>
     </div>
   </section>
 </main>
@@ -773,7 +810,7 @@ const CONFIG = {
   const mouvementReduit = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const etat = {
-    infos: { titre: 'Examen de passage d’observateur à infirmier', nbElim: 2, nbQuestions: 15, secondes: 15 },
+    infos: { titre: 'Examen de passage d’observateur à infirmier', nbElim: 2, nbQuestions: 15, secondes: 20 },
     vueExamen: 'vue-accueil',
     candidat: null,
     passage: null,
@@ -792,6 +829,7 @@ const CONFIG = {
       code: null, donnees: null, passages: [], onglet: 'resultats',
       filtre: 'tous', recherche: '', ouvert: null, aSupprimer: null,
       questions: null, banqueErreur: null, liste: 'std', theme: 'tous', rechercheQ: '', edition: null, qASupprimer: null,
+      secondesEnregistrees: null,
     },
   };
 
@@ -1268,27 +1306,32 @@ const CONFIG = {
     rendreRatees();
     rendreListe();
     if (g.questions) rendreBanque();
+    if (g.onglet === 'reglages' && Number($('temps-curseur').value) === g.secondesEnregistrees) rendreReglages();
   }
+
+  const ONGLETS_GERANCE = ['resultats', 'questions', 'reglages'];
 
   function changerOnglet(onglet) {
     const g = etat.gerance;
-    const resultats = onglet === 'resultats';
     g.onglet = onglet;
-    $('g-resultats').hidden = !resultats;
-    $('g-questions').hidden = resultats;
-    $('g-onglet-resultats').setAttribute('aria-selected', String(resultats));
-    $('g-onglet-questions').setAttribute('aria-selected', String(!resultats));
+    ONGLETS_GERANCE.forEach((o) => {
+      $('g-' + o).hidden = o !== onglet;
+      $('g-onglet-' + o).setAttribute('aria-selected', String(o === onglet));
+    });
     majTeteGerance();
-    if (!resultats && !g.questions && !g.banqueErreur) chargerBanque();
+    if (onglet === 'questions' && !g.questions && !g.banqueErreur) chargerBanque();
+    if (onglet === 'reglages') rendreReglages();
   }
 
-  $('g-onglet-resultats').addEventListener('click', () => changerOnglet('resultats'));
-  $('g-onglet-questions').addEventListener('click', () => changerOnglet('questions'));
+  ONGLETS_GERANCE.forEach((o) => $('g-onglet-' + o).addEventListener('click', () => changerOnglet(o)));
 
   function majTeteGerance() {
     const g = etat.gerance;
     const d = g.donnees || etat.infos;
-    if (g.onglet === 'questions') {
+    if (g.onglet === 'reglages') {
+      $('g-titre').textContent = 'Réglages de l’examen';
+      $('g-sous').textContent = 'Le temps laissé aux candidats pour répondre à chaque question.';
+    } else if (g.onglet === 'questions') {
       $('g-titre').textContent = 'Banque de questions';
       $('g-sous').textContent = 'Chaque examen tire ' + d.nbElim + ' questions éliminatoires et ' + d.nbQuestions + ' questions non éliminatoires parmi les questions actives.';
     } else {
@@ -1443,6 +1486,7 @@ const CONFIG = {
         meta('Début', dateLongue(p.debut)),
         meta('Fin', dateLongue(p.fin)),
         meta('Durée', termine ? duree(p.duree) : '—'),
+        meta('Temps par question', p.secondes ? p.secondes + ' s' : '—'),
         meta('Sorties de page', String(p.sorties))));
 
     if (p.alertes) detail.append(h('p', { class: 'alerte' }, h('span', { 'aria-hidden': 'true' }, '⚠'), h('span', null, p.alertes)));
@@ -1738,6 +1782,67 @@ const CONFIG = {
       montrerErreur('g-erreur', 'Suppression impossible : ' + e.message);
     }
   }
+
+  // ── Gérance : réglages (temps par question) ───────────────────────────────
+  const TEMPS_RAPIDES = [10, 15, 20, 30, 45];
+  let minuteurTemps = 0;
+
+  function rendreReglages() {
+    const g = etat.gerance;
+    g.secondesEnregistrees = (g.donnees || etat.infos).secondes;
+    cacherErreur('erreur-temps');
+    majCurseur(g.secondesEnregistrees);
+  }
+
+  function majCurseur(valeur) {
+    const g = etat.gerance;
+    const v = Math.max(5, Math.min(45, Math.round(Number(valeur) || 20)));
+    const curseur = $('temps-curseur');
+    curseur.value = v;
+    curseur.style.setProperty('--pct', (((v - 5) / 40) * 100).toFixed(1) + '%');
+    $('temps-valeur').textContent = v;
+    const d = g.donnees || etat.infos;
+    const nb = d.nbElim + d.nbQuestions;
+    $('temps-total').textContent = 'Durée maximale d’un examen : ' + nb + ' questions × ' + v + ' s = ' + duree(nb * v) + '.';
+    const modifie = v !== g.secondesEnregistrees;
+    $('temps-enregistrer').disabled = !modifie;
+    $('temps-annuler').disabled = !modifie;
+    $('temps-presets').replaceChildren(h('span', { class: 'presets-lib' }, 'Choix rapides'),
+      ...TEMPS_RAPIDES.map((s) => h('button', {
+        type: 'button', class: 'chip', 'aria-pressed': String(s === v), onclick: () => majCurseur(s),
+      }, s + ' s')));
+  }
+
+  $('temps-curseur').addEventListener('input', (ev) => majCurseur(ev.target.value));
+  $('temps-annuler').addEventListener('click', () => majCurseur(etat.gerance.secondesEnregistrees));
+
+  $('form-temps').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const g = etat.gerance;
+    const bouton = $('temps-enregistrer');
+    cacherErreur('erreur-temps');
+    bouton.disabled = true;
+    bouton.textContent = 'Enregistrement…';
+    try {
+      const res = await appel('modifier_reglages', { p_code: g.code, p_reglages: { secondes: Number($('temps-curseur').value) } });
+      g.secondesEnregistrees = res.secondes;
+      if (g.donnees) g.donnees.secondes = res.secondes;
+      etat.infos.secondes = res.secondes;
+      majInfos();
+      const statut = $('statut-temps');
+      statut.textContent = 'Enregistré : ' + res.secondes + ' secondes par question pour les prochains examens.';
+      statut.hidden = false;
+      clearTimeout(minuteurTemps);
+      minuteurTemps = setTimeout(() => { statut.hidden = true; }, 5000);
+    } catch (e) {
+      montrerErreur('erreur-temps', /pas encore installée/.test(e.message)
+        ? 'Le réglage du temps n’est pas encore activé : relance schema.sql dans Supabase (SQL Editor → Run).'
+        : e.message);
+    } finally {
+      bouton.textContent = 'Enregistrer';
+      majCurseur($('temps-curseur').value);
+    }
+  });
 
   // ── Sable du désert ───────────────────────────────────────────────────────
   function sable() {
