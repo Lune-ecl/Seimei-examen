@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seimei · Examens</title>
+<meta name="description" content="Examens internes de la Seimei : passage d’observateur à infirmier.">
+<meta name="theme-color" content="#060d0c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='13' fill='%23e5553e'/%3E%3Crect x='9' y='9' width='46' height='46' rx='9' fill='none' stroke='%23fff3ea' stroke-opacity='.6' stroke-width='2'/%3E%3Ctext x='32' y='44' font-size='32' text-anchor='middle' fill='%23fff3ea' font-family='serif'%3E%E5%8C%BB%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Shippori+Mincho+B1:wght@500;700;800&family=Yuji+Syuku&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Nuit sur le désert de Suna : vert du chakra médical, or du sable, vermillon des sceaux.
+   Une colonne centrale de 1160 px ; l'examen se joue sur deux colonnes (chrono | question). */
+:root {
+  --nuit: #060d0c;
+  --verre: rgba(12, 27, 24, .8);
+  --ligne: rgba(222, 196, 140, .13);
+  --ligne-forte: rgba(222, 196, 140, .3);
+  --papier: #efe7d4;
+  --papier-2: #c7c0ad;
+  --brume: #8fa39b;
+  --sable: #dcbb7c;
+  --chakra: #55e6b3;
+  --chakra-2: #1fb487;
+  --chakra-encre: #032219;
+  --vermillon: #e5553e;
+  --ambre: #e9b44c;
+  --ciel: #8cc4ff;
+  --ok: #55e6b3;
+  --ko: #ff7a63;
+  --font-titre: "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
+  --font-texte: "Zen Kaku Gothic New", "Yu Gothic", "Hiragino Sans", "Segoe UI", system-ui, sans-serif;
+  --font-pinceau: "Yuji Syuku", "Shippori Mincho B1", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --rayon: 18px;
+  --gouttiere-g: max(20px, env(safe-area-inset-left, 0px));
+  --gouttiere-d: max(20px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; background: var(--nuit); color: var(--papier); font: 400 16px/1.6 var(--font-texte); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--chakra); outline-offset: 3px; }
+::selection { background: rgba(85, 230, 179, .3); }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ── Ciel, dunes, sable ─────────────────────────────────────────── */
+.ciel { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 12% -5%, rgba(85, 230, 179, .11), transparent 60%),
+    radial-gradient(ellipse 55% 45% at 88% 8%, rgba(220, 187, 124, .09), transparent 65%),
+    radial-gradient(ellipse 120% 55% at 50% 112%, rgba(220, 187, 124, .14), transparent 62%),
+    linear-gradient(180deg, #071311 0%, #070f0e 50%, #0a110f 100%); }
+.lune { position: absolute; top: 12vh; right: 9vw; width: 74px; height: 74px; border-radius: 50%; box-shadow: inset 15px -7px 0 0 rgba(244, 233, 206, .5); filter: drop-shadow(0 0 22px rgba(244, 233, 206, .22)); transform: rotate(-18deg); }
+.filigrane { position: absolute; right: -6vw; top: 4vh; font: 46vw/1 var(--font-pinceau); color: rgba(239, 231, 212, .026); transform: rotate(-8deg); user-select: none; }
+.dunes { position: absolute; left: 0; bottom: 0; width: 100%; height: 26vh; min-height: 150px; }
+.dune-loin { fill: rgba(220, 187, 124, .06); }
+.dune-milieu { fill: rgba(220, 187, 124, .045); }
+.dune-pres { fill: #070f0d; }
+.grain { position: absolute; inset: 0; opacity: .07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#sable { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; }
+body::after { content: ""; position: fixed; inset: 0; z-index: 40; pointer-events: none; box-shadow: inset 0 0 0 0 rgba(229, 85, 62, 0); transition: box-shadow .5s; }
+body.urgence::after { box-shadow: inset 0 0 160px 12px rgba(229, 85, 62, .2); }
+
+/* ── En-tête ────────────────────────────────────────────────────── */
+.bandeau { position: relative; z-index: 25; padding: 10px var(--gouttiere-d) 10px var(--gouttiere-g); text-align: center; font-size: .9rem; color: #f4d9a0; background: rgba(233, 180, 76, .12); border-bottom: 1px solid rgba(233, 180, 76, .3); }
+.tete { position: sticky; top: 0; z-index: 20; background: linear-gradient(180deg, rgba(6, 13, 12, .95), rgba(6, 13, 12, .78)); border-bottom: 1px solid var(--ligne); }
+.tete-int { max-width: 1160px; margin: 0 auto; padding: 14px var(--gouttiere-d) 14px var(--gouttiere-g); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.marque { display: flex; align-items: center; gap: 14px; border: 0; padding: 0; background: none; text-align: left; }
+.sceau { display: grid; place-items: center; width: 46px; height: 46px; flex: none; border-radius: 11px; background: var(--vermillon); color: #fff3ea; font: 28px/1 var(--font-pinceau); transform: rotate(-6deg);
+  box-shadow: inset 0 0 0 3px var(--vermillon), inset 0 0 0 4.5px rgba(255, 243, 234, .55), 0 8px 22px -8px rgba(229, 85, 62, .75); }
+.marque-txt { display: grid; gap: 4px; }
+.marque-nom { font: 800 1.42rem/1 var(--font-titre); letter-spacing: .16em; text-transform: uppercase; }
+.marque-sous { font-size: .64rem; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: var(--sable); }
+.nav { display: flex; gap: 4px; padding: 5px; border: 1px solid var(--ligne); border-radius: 999px; background: rgba(11, 23, 21, .75); }
+.nav-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border: 0; border-radius: 999px; background: transparent; color: var(--brume); font-size: .92rem; font-weight: 700; transition: color .2s, background .2s, box-shadow .2s; }
+.nav-btn:hover { color: var(--papier); }
+.nav-btn[aria-current="page"] { color: var(--chakra-encre); background: linear-gradient(135deg, #7af3c8, var(--chakra) 45%, var(--chakra-2)); box-shadow: 0 0 26px -6px rgba(85, 230, 179, .75); }
+.nav-kanji { font: 1rem/1 var(--font-pinceau); }
+.en-cours { display: inline-flex; align-items: center; gap: 10px; font-size: .88rem; color: var(--papier-2); }
+.en-cours::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--vermillon); animation: signal 1.6s ease-out infinite; }
+@keyframes signal { 0% { box-shadow: 0 0 0 0 rgba(229, 85, 62, .7); } 100% { box-shadow: 0 0 0 10px rgba(229, 85, 62, 0); } }
+.en-examen .nav { display: none; }
+
+/* ── Page ───────────────────────────────────────────────────────── */
+main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh - 160px); margin: 0 auto; padding: clamp(28px, 6vw, 72px) var(--gouttiere-d) 96px var(--gouttiere-g); }
+.vue { animation: apparait .55s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes apparait { from { opacity: 0; transform: translateY(14px); } }
+.surtitre { display: inline-flex; align-items: center; gap: 12px; font-size: .72rem; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: var(--sable); }
+.surtitre::before { content: ""; width: 34px; height: 1px; background: linear-gradient(90deg, transparent, var(--sable)); }
+.carte { position: relative; padding: clamp(22px, 4vw, 42px); border: 1px solid var(--ligne); border-radius: var(--rayon); background: linear-gradient(180deg, rgba(17, 37, 33, .88), rgba(8, 19, 17, .92)); box-shadow: 0 34px 90px -46px #000, inset 0 1px 0 rgba(255, 255, 255, .03); }
+.coins::before, .coins::after { content: ""; position: absolute; width: 22px; height: 22px; border: 1px solid var(--sable); opacity: .5; pointer-events: none; }
+.coins::before { top: 10px; left: 10px; border-right: 0; border-bottom: 0; border-top-left-radius: 7px; }
+.coins::after { right: 10px; bottom: 10px; border-left: 0; border-top: 0; border-bottom-right-radius: 7px; }
+.note { font-size: .88rem; color: var(--brume); }
+.erreur { color: var(--ko); font-size: .92rem; font-weight: 700; }
+
+/* ── Boutons et champs ──────────────────────────────────────────── */
+.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 12px 26px; overflow: hidden; border: 1px solid transparent; border-radius: 12px; font-weight: 700; letter-spacing: .02em; transition: transform .15s, box-shadow .2s, border-color .2s, opacity .2s; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-chakra { color: var(--chakra-encre); background: linear-gradient(135deg, #7af3c8, var(--chakra) 40%, var(--chakra-2)); box-shadow: 0 0 0 1px rgba(85, 230, 179, .35), 0 14px 34px -14px rgba(85, 230, 179, .8); }
+.btn-chakra::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, .5) 45%, transparent 62%); transform: translateX(-120%); transition: transform .8s; }
+.btn-chakra:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 0 0 1px rgba(85, 230, 179, .55), 0 18px 46px -14px rgba(85, 230, 179, 1); }
+.btn-chakra:not(:disabled):hover::after { transform: translateX(120%); }
+.btn-large { min-height: 58px; padding-inline: 34px; font-size: 1.05rem; }
+.btn-sobre { color: var(--papier); background: rgba(16, 35, 32, .6); border-color: var(--ligne-forte); }
+.btn-sobre:not(:disabled):hover { border-color: var(--sable); }
+.btn-danger { color: var(--ko); background: transparent; border-color: rgba(255, 122, 99, .45); }
+.btn-danger.plein { color: #200704; background: var(--ko); }
+.fleche { transition: transform .2s; }
+.btn:not(:disabled):hover .fleche { transform: translateX(4px); }
+.champ { position: relative; display: block; }
+.champ input { width: 100%; padding: 24px 16px 10px; border: 1px solid var(--ligne-forte); border-radius: 12px; background: rgba(6, 13, 12, .65); font-size: 1.05rem; transition: border-color .2s, box-shadow .2s; }
+.champ span { position: absolute; left: 17px; top: 17px; color: var(--brume); pointer-events: none; transform-origin: left top; transition: transform .18s, color .18s; }
+.champ input:focus { outline: none; border-color: var(--chakra); box-shadow: 0 0 0 4px rgba(85, 230, 179, .12), 0 0 34px -12px rgba(85, 230, 179, .7); }
+.champ input:focus + span, .champ input:not(:placeholder-shown) + span { transform: translateY(-11px) scale(.74); color: var(--sable); }
+
+/* ── Accueil ────────────────────────────────────────────────────── */
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: center; gap: clamp(24px, 5vw, 64px); }
+.hero-titre { margin-top: 20px; font: 800 clamp(2.7rem, 6.6vw, 5.2rem)/1.02 var(--font-titre); letter-spacing: -.01em; }
+.hero-titre em { font-style: normal; color: transparent; background: linear-gradient(115deg, var(--papier) 5%, var(--sable) 55%, #f6dca6 95%); -webkit-background-clip: text; background-clip: text; }
+.parcours { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 24px; }
+.grade { padding: 7px 14px; border: 1px solid var(--ligne-forte); border-radius: 8px; font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--papier-2); }
+.grade.vise { color: var(--chakra); border-color: rgba(85, 230, 179, .55); background: rgba(85, 230, 179, .08); box-shadow: 0 0 30px -10px rgba(85, 230, 179, .8); }
+.trait { position: relative; width: 56px; height: 1px; background: linear-gradient(90deg, var(--ligne-forte), var(--chakra)); }
+.trait::after { content: ""; position: absolute; right: -2px; top: -4px; border: 4.5px solid transparent; border-right: 0; border-left-color: var(--chakra); }
+.hero-lead { max-width: 34rem; margin-top: 26px; font-size: 1.08rem; color: var(--papier-2); }
+.hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-top: 36px; }
+.embleme { position: relative; justify-self: center; width: min(100%, 460px); aspect-ratio: 1; }
+.embleme svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.emb-lent { transform-origin: 200px 200px; animation: tourne 140s linear infinite; }
+.emb-inverse { transform-origin: 200px 200px; animation: tourne 90s linear infinite reverse; }
+.emb-orbite { transform-origin: 200px 200px; animation: tourne 18s linear infinite; }
+.emb-halo { transform-origin: 200px 200px; animation: respire 7s ease-in-out infinite; }
+.emb-texte { font: 600 13px var(--font-titre); letter-spacing: 4px; fill: rgba(220, 187, 124, .7); }
+.emb-sceau { font: 92px var(--font-pinceau); fill: #fff3ea; }
+@keyframes tourne { to { transform: rotate(360deg); } }
+@keyframes respire { 50% { opacity: .6; transform: scale(1.06); } }
+.faits { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: clamp(48px, 8vw, 92px) 0 0; padding: 0; list-style: none; overflow: hidden; border: 1px solid var(--ligne); border-radius: var(--rayon); background: var(--verre); }
+.faits li { display: grid; gap: 8px; padding: 26px 24px; border-left: 1px solid var(--ligne); }
+.faits li:first-child { border-left: 0; }
+.faits strong { font: 800 clamp(2.1rem, 4vw, 2.9rem)/1 var(--font-titre); }
+.faits strong small { margin-left: 3px; font-size: .5em; color: var(--sable); }
+.faits li > span { font-size: .74rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--brume); }
+.faits .rouge strong { color: var(--vermillon); }
+.regles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.regle { position: relative; overflow: hidden; padding: 26px 24px 24px; border: 1px solid var(--ligne); border-radius: var(--rayon); background: linear-gradient(180deg, rgba(16, 35, 32, .78), rgba(9, 21, 19, .78)); }
+.regle-kanji { position: absolute; right: 16px; top: 4px; font: 70px/1 var(--font-pinceau); color: rgba(220, 187, 124, .13); }
+.regle h3 { margin-bottom: 8px; font: 700 1.16rem/1.3 var(--font-titre); }
+.regle p { position: relative; font-size: .95rem; color: var(--papier-2); }
+.regle.rouge .regle-kanji { color: rgba(229, 85, 62, .22); }
+.regle.rouge h3 { color: #ffb6a8; }
+
+/* ── Identité ───────────────────────────────────────────────────── */
+.identite { max-width: 640px; margin: 0 auto; }
+.identite h2 { margin: 16px 0 6px; font: 800 clamp(1.9rem, 4.4vw, 2.5rem)/1.15 var(--font-titre); }
+.champs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 28px 0 20px; }
+.avertissement { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; border: 1px solid rgba(233, 180, 76, .26); border-radius: 12px; background: rgba(233, 180, 76, .07); font-size: .93rem; color: var(--papier-2); }
+.avertissement b { color: var(--papier); }
+.avertissement-kanji { font: 1.7rem/1 var(--font-pinceau); color: var(--ambre); }
+.identite .erreur { margin-top: 16px; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+
+/* ── Compte à rebours ───────────────────────────────────────────── */
+.decompte { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: radial-gradient(circle at 50% 50%, rgba(85, 230, 179, .16), transparent 58%), rgba(4, 9, 8, .97); }
+.decompte-int { display: grid; justify-items: center; gap: 12px; text-align: center; }
+.decompte-txt { font-size: .78rem; font-weight: 700; letter-spacing: .42em; text-transform: uppercase; color: var(--sable); }
+.decompte-n { font: 800 clamp(7rem, 24vw, 12rem)/1 var(--font-titre); text-shadow: 0 0 50px rgba(85, 230, 179, .55); }
+.decompte-n.tic { animation: tic .8s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes tic { from { opacity: 0; transform: scale(1.7); filter: blur(8px); } 40% { opacity: 1; transform: scale(1); filter: blur(0); } to { opacity: .2; transform: scale(.86); } }
+.decompte-nom { color: var(--papier-2); }
+
+/* ── Examen ─────────────────────────────────────────────────────── */
+.examen { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; gap: clamp(20px, 3.4vw, 44px); }
+.cote { position: sticky; top: calc(var(--haut-tete, 76px) + 28px); display: grid; justify-items: center; gap: 22px; text-align: center; }
+.chrono { position: relative; width: 220px; aspect-ratio: 1; }
+.chrono svg { display: block; width: 100%; height: 100%; overflow: visible; transform: rotate(-90deg); }
+.chrono-fond { fill: rgba(6, 13, 12, .75); stroke: rgba(222, 196, 140, .1); stroke-width: 5; }
+.chrono-graduation { fill: none; stroke: rgba(222, 196, 140, .35); stroke-width: 4; stroke-dasharray: 1 9.12; }
+.chrono-arc { fill: none; stroke: var(--chakra); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 326.73; filter: drop-shadow(0 0 6px rgba(85, 230, 179, .85)); transition: stroke .3s; }
+.chrono-centre { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; }
+.chrono-s { font: 800 4.4rem/1 var(--font-titre); font-variant-numeric: tabular-nums; }
+.chrono-unite { margin-top: 6px; font-size: .66rem; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: var(--brume); }
+.chrono.urgent .chrono-arc { stroke: var(--vermillon); filter: drop-shadow(0 0 9px rgba(229, 85, 62, .95)); }
+.chrono.urgent .chrono-s { color: #ff9c88; animation: battement 1s ease-in-out infinite; }
+@keyframes battement { 50% { transform: scale(1.08); } }
+.compteur { display: grid; gap: 6px; }
+.compteur-lib { font-size: .68rem; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: var(--sable); }
+.compteur-nb { font: 800 1.7rem/1 var(--font-titre); }
+.compteur-nb small { font: 500 .95rem var(--font-texte); color: var(--brume); }
+.progression { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 220px; margin: 0; padding: 0; list-style: none; }
+.progression li { width: 9px; height: 9px; border: 1px solid var(--ligne-forte); transform: rotate(45deg); transition: background .3s, box-shadow .3s, border-color .3s; }
+.progression li.elim { border-color: rgba(229, 85, 62, .75); }
+.progression li.fait { border-color: transparent; background: rgba(85, 230, 179, .55); }
+.progression li.actuel { border-color: transparent; background: var(--sable); box-shadow: 0 0 12px rgba(220, 187, 124, .85); }
+.carte-q { padding: clamp(24px, 4vw, 46px); -webkit-user-select: none; user-select: none; }
+.carte-q.entree { animation: entree .38s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes entree { from { opacity: 0; transform: translateX(28px); } }
+.q-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; min-height: 32px; margin-bottom: 18px; }
+.badge-elim { display: inline-flex; align-items: center; gap: 9px; padding: 4px 12px 4px 5px; border: 1px solid rgba(229, 85, 62, .55); border-radius: 8px; background: rgba(229, 85, 62, .13); color: #ffb3a4; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+.badge-sceau { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 5px; background: var(--vermillon); color: #fff3ea; font: 14px/1 var(--font-pinceau); letter-spacing: 0; }
+.q-theme { font-size: .72rem; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--sable); }
+.q-flash { margin-left: auto; padding: 4px 11px; border-radius: 999px; background: rgba(233, 180, 76, .13); color: var(--ambre); font-size: .8rem; font-weight: 700; }
+.q-texte { margin-bottom: 28px; font: 700 clamp(1.35rem, 2.7vw, 1.9rem)/1.35 var(--font-titre); text-wrap: pretty; }
+.options { display: grid; gap: 12px; }
+.option { display: grid; grid-template-columns: 46px minmax(0, 1fr); align-items: center; gap: 16px; width: 100%; padding: 13px 18px 13px 13px; border: 1px solid var(--ligne); border-radius: 14px; background: rgba(6, 13, 12, .55); text-align: left; font-size: 1.04rem; line-height: 1.45; transition: border-color .18s, background .18s, transform .18s, box-shadow .18s; }
+.option:hover { border-color: rgba(85, 230, 179, .45); background: rgba(16, 40, 34, .6); transform: translateX(4px); }
+.option[aria-checked="true"] { border-color: var(--chakra); background: linear-gradient(90deg, rgba(85, 230, 179, .19), rgba(85, 230, 179, .04) 72%); box-shadow: 0 0 0 1px rgba(85, 230, 179, .4), 0 0 38px -10px rgba(85, 230, 179, .75); }
+.option-lettre { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid var(--ligne-forte); border-radius: 11px; font: 700 1.1rem/1 var(--font-titre); color: var(--sable); transition: background .18s, color .18s, border-color .18s; }
+.option[aria-checked="true"] .option-lettre { border-color: transparent; background: var(--chakra); color: var(--chakra-encre); }
+.option-texte { min-width: 0; overflow-wrap: anywhere; }
+.q-pied { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-top: 28px; }
+.aide { font-size: .82rem; color: var(--brume); }
+.aide kbd { padding: 1px 6px; border: 1px solid var(--ligne-forte); border-radius: 5px; font: 500 .76rem var(--font-mono); color: var(--papier-2); }
+
+/* ── Envoi et fin ───────────────────────────────────────────────── */
+.envoi { display: grid; justify-items: center; gap: 14px; max-width: 520px; margin: 8vh auto 0; text-align: center; }
+.envoi h2 { font: 700 1.6rem/1.3 var(--font-titre); }
+.roue { width: 72px; height: 72px; margin-bottom: 8px; border: 2px solid rgba(85, 230, 179, .15); border-top-color: var(--chakra); border-radius: 50%; box-shadow: 0 0 34px -8px rgba(85, 230, 179, .7); animation: tourne 1s linear infinite; }
+.fin { display: grid; justify-items: center; gap: 14px; max-width: 640px; margin: 3vh auto 0; text-align: center; }
+.tampon { position: relative; display: grid; place-items: center; width: 132px; height: 132px; margin-bottom: 12px; border-radius: 20px; background: var(--vermillon); color: #fff3ea; font: 84px/1 var(--font-pinceau); transform: rotate(-8deg);
+  box-shadow: inset 0 0 0 4px var(--vermillon), inset 0 0 0 6px rgba(255, 243, 234, .55), 0 22px 54px -18px rgba(229, 85, 62, .85); animation: tampon .75s cubic-bezier(.2, 1.5, .4, 1) both; }
+.tampon::after { content: ""; position: absolute; inset: -16px; border: 2px solid rgba(229, 85, 62, .6); border-radius: 30px; animation: onde 1s .3s ease-out both; }
+@keyframes tampon { from { opacity: 0; transform: scale(2.4) rotate(-26deg); filter: blur(4px); } 60% { opacity: 1; transform: scale(.94) rotate(-6deg); filter: blur(0); } }
+@keyframes onde { from { opacity: .9; transform: scale(.85); } to { opacity: 0; transform: scale(1.5); } }
+.fin h2 { font: 800 clamp(2rem, 5vw, 2.8rem)/1.15 var(--font-titre); }
+.fin-message { max-width: 32rem; color: var(--papier-2); }
+.fin-resultat { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 14px; font-weight: 700; }
+.ref { font-size: .86rem; color: var(--brume); }
+.ref code { margin-left: 6px; padding: 3px 9px; border: 1px solid var(--ligne); border-radius: 6px; background: rgba(220, 187, 124, .08); color: var(--sable); font: 500 .85rem var(--font-mono); }
+
+/* ── Gérance : sceau ────────────────────────────────────────────── */
+.verrou { display: grid; justify-items: center; gap: 14px; max-width: 520px; margin: 2vh auto 0; text-align: center; }
+.verrou .champ { width: 100%; margin-top: 8px; }
+.verrou h2 { font: 800 clamp(1.9rem, 4.4vw, 2.5rem)/1.2 var(--font-titre); }
+.verrou p { color: var(--papier-2); }
+.verrou .btn { width: 100%; margin-top: 4px; }
+.fuin { position: relative; display: grid; place-items: center; width: 124px; height: 124px; margin-bottom: 6px; }
+.fuin::before { content: ""; position: absolute; inset: 0; border: 1px dashed rgba(220, 187, 124, .55); border-radius: 50%; animation: tourne 30s linear infinite; }
+.fuin::after { content: ""; position: absolute; inset: 15px; border: 1px solid rgba(85, 230, 179, .45); border-radius: 50%; box-shadow: 0 0 44px -8px rgba(85, 230, 179, .65), inset 0 0 30px -10px rgba(85, 230, 179, .55); }
+.fuin span { font: 58px/1 var(--font-pinceau); color: var(--sable); text-shadow: 0 0 26px rgba(220, 187, 124, .55); }
+.verrou.brise .fuin { animation: brise .5s ease-in forwards; }
+@keyframes brise { to { opacity: 0; transform: scale(1.6) rotate(24deg); filter: blur(6px); } }
+
+/* ── Gérance : tableau ──────────────────────────────────────────── */
+.g-tete { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 26px; }
+.g-titre { margin-top: 12px; font: 800 clamp(1.9rem, 4.4vw, 2.7rem)/1.1 var(--font-titre); }
+.g-sous { margin-top: 8px; font-size: .94rem; color: var(--papier-2); }
+.g-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.maj { font-size: .8rem; color: var(--brume); }
+#g-erreur { margin-bottom: 14px; }
+.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.stat { display: grid; gap: 8px; padding: 18px 18px 16px; border: 1px solid var(--ligne); border-radius: 14px; background: rgba(12, 26, 23, .8); text-align: left; transition: border-color .2s, transform .2s, box-shadow .2s; }
+.stat:hover { border-color: var(--ligne-forte); transform: translateY(-2px); }
+.stat[aria-pressed="true"] { border-color: var(--teinte); box-shadow: inset 0 0 0 1px var(--teinte), 0 0 32px -14px var(--teinte); }
+.stat-lib { display: inline-flex; align-items: center; gap: 8px; font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--brume); }
+.stat-lib::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--teinte); box-shadow: 0 0 10px var(--teinte); }
+.stat-nb { font: 800 2.3rem/1 var(--font-titre); }
+.t-tous { --teinte: var(--sable); }
+.t-reussi { --teinte: var(--ok); }
+.t-echoue { --teinte: var(--ambre); }
+.t-elimine { --teinte: var(--ko); }
+.t-encours { --teinte: var(--ciel); }
+.t-interrompu { --teinte: var(--brume); }
+.graphes { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; margin-bottom: 30px; }
+.graphe { padding: 22px 22px 18px; }
+.graphe-tete { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; margin-bottom: 14px; }
+.graphe h3 { font: 700 1.06rem/1.3 var(--font-titre); }
+.taux { font: 800 1.9rem/1 var(--font-titre); color: var(--chakra); }
+.taux small { margin-left: 6px; font: 700 .68rem var(--font-texte); letter-spacing: .16em; text-transform: uppercase; color: var(--brume); }
+.histo { display: block; width: 100%; height: auto; }
+.histo .base { stroke: var(--ligne-forte); }
+.histo .barre { fill: rgba(220, 187, 124, .55); }
+.histo .barre-ok { fill: var(--chakra); }
+.histo .seuil { stroke: var(--vermillon); stroke-dasharray: 4 4; }
+.histo text { font: 600 11px var(--font-mono); fill: var(--brume); text-anchor: middle; }
+.histo .val { fill: var(--papier); }
+.histo .seuil-txt { fill: #ff9c88; text-anchor: start; }
+.vide-graphe { padding: 36px 8px; text-align: center; font-size: .92rem; color: var(--brume); }
+.ratees { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.ratee { display: grid; gap: 7px; }
+.ratee-q { display: -webkit-box; overflow: hidden; font-size: .9rem; line-height: 1.4; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ratee-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; font: 600 .78rem var(--font-mono); color: var(--brume); }
+.jauge { height: 6px; overflow: hidden; border-radius: 999px; background: rgba(222, 196, 140, .12); }
+.jauge i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--ambre), var(--ko)); }
+.liste-tete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.liste-tete h3 { font: 700 1.35rem/1.2 var(--font-titre); }
+.recherche { width: min(100%, 360px); padding: 12px 16px 12px 42px; border: 1px solid var(--ligne-forte); border-radius: 12px;
+  background: rgba(6, 13, 12, .65) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa39b' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px center / 17px; }
+.recherche:focus { outline: none; border-color: var(--chakra); box-shadow: 0 0 0 4px rgba(85, 230, 179, .12); }
+.liste { display: grid; gap: 10px; }
+.vide { padding: 48px 18px; border: 1px dashed var(--ligne-forte); border-radius: 14px; text-align: center; color: var(--brume); }
+.passage { overflow: hidden; border: 1px solid var(--ligne); border-radius: 14px; background: rgba(11, 24, 21, .82); transition: border-color .2s; }
+.passage:hover, .passage.ouvert { border-color: var(--ligne-forte); }
+.p-ligne { display: grid; grid-template-columns: 44px minmax(0, 1fr) 84px 56px 112px 96px 20px 16px; align-items: center; gap: 14px; width: 100%; padding: 14px 18px; border: 0; background: transparent; text-align: left; }
+.p-avatar { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid currentColor; border-radius: 11px; background: rgba(6, 13, 12, .5); color: var(--teinte); font: 700 .95rem/1 var(--font-titre); }
+.p-qui { min-width: 0; }
+.p-qui strong { display: block; overflow-wrap: anywhere; }
+.p-qui small { display: block; font-size: .8rem; color: var(--brume); }
+.p-score { font: 800 1.45rem/1 var(--font-titre); font-variant-numeric: tabular-nums; }
+.p-score small { font: 500 .8rem var(--font-texte); color: var(--brume); }
+.p-elim { display: inline-flex; gap: 8px; padding-left: 2px; }
+.p-elim i { width: 10px; height: 10px; background: var(--ok); box-shadow: 0 0 8px var(--ok); transform: rotate(45deg); }
+.p-elim i.ko { background: var(--ko); box-shadow: 0 0 8px var(--ko); }
+.pill { justify-self: start; padding: 5px 12px; border: 1px solid rgba(222, 196, 140, .25); border-radius: 999px; background: rgba(222, 196, 140, .08); color: var(--teinte); font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.pill.t-reussi { border-color: rgba(85, 230, 179, .4); background: rgba(85, 230, 179, .1); }
+.pill.t-echoue { border-color: rgba(233, 180, 76, .4); background: rgba(233, 180, 76, .1); }
+.pill.t-elimine { border-color: rgba(255, 122, 99, .45); background: rgba(255, 122, 99, .1); }
+.pill.t-encours { border-color: rgba(140, 196, 255, .4); background: rgba(140, 196, 255, .1); }
+.p-duree { font: 500 .84rem var(--font-mono); color: var(--brume); }
+.p-alerte { font-size: 1.05rem; color: var(--ambre); }
+.chevron { color: var(--brume); transition: transform .2s; }
+.p-ligne[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+.saut { display: none; }
+.p-detail { display: grid; gap: 18px; padding: 20px 18px 18px; border-top: 1px solid var(--ligne); background: rgba(6, 13, 12, .45); }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 18px; margin: 0; }
+.meta dt { font-size: .66rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--sable); }
+.meta dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; }
+.meta code { font: 500 .88rem var(--font-mono); color: var(--papier); }
+.alerte { display: flex; gap: 10px; padding: 12px 14px; border: 1px solid rgba(233, 180, 76, .3); border-radius: 10px; background: rgba(233, 180, 76, .08); color: #f4d9a0; font-size: .9rem; }
+.themes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.themes-lib { margin-right: 4px; font-size: .66rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--sable); }
+.theme-chip { padding: 5px 12px; border: 1px solid var(--ligne); border-radius: 999px; background: rgba(16, 35, 32, .6); font-size: .82rem; }
+.theme-chip b { font-family: var(--font-mono); color: var(--ok); }
+.theme-chip.faible b { color: var(--ko); }
+.reponses { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.rep { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border: 1px solid var(--ligne); border-radius: 10px; background: rgba(11, 24, 21, .75); }
+.rep-num { grid-row: span 4; font: 600 .86rem/1.7 var(--font-mono); color: var(--brume); }
+.rep-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.rep-tete .badge-elim { padding: 2px 8px; font-size: .6rem; }
+.rep-tete .q-theme { font-size: .64rem; }
+.rep-temps { margin-left: auto; font: 500 .74rem var(--font-mono); color: var(--brume); }
+.rep-q { font-weight: 700; }
+.rep-r { display: flex; gap: 8px; }
+.rep-ok .rep-r { color: var(--ok); }
+.rep-ko .rep-r { color: var(--ko); }
+.rep-vide .rep-r { color: var(--brume); }
+.rep-bonne { font-size: .88rem; color: var(--papier-2); }
+.rep-bonne strong { color: var(--ok); }
+.detail-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+.confirmer { margin-right: auto; font-weight: 700; color: var(--ko); }
+
+.pied { position: relative; z-index: 2; padding: 26px var(--gouttiere-d) 40px var(--gouttiere-g); text-align: center; font-size: .78rem; letter-spacing: .08em; color: var(--brume); }
+.pied b { font-weight: 700; color: var(--sable); }
+
+/* ── Écrans moyens et téléphones (règles en fin de feuille exprès) ─ */
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; }
+  .embleme { order: -1; width: min(64vw, 300px); margin-bottom: -6px; }
+  .regles, .graphes { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat.t-tous { grid-column: 1 / -1; }
+  .p-ligne { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .p-avatar { order: 0; }
+  .p-qui { order: 1; flex: 1 1 0; }
+  .pill { order: 2; }
+  .p-alerte { order: 3; }
+  .saut { display: block; order: 4; flex-basis: 100%; height: 0; }
+  .p-score, .p-elim, .p-duree { order: 5; }
+  .saut + .p-score { margin-left: 58px; }
+  .chevron { display: none; }
+}
+@media (max-width: 760px) {
+  .tete-int { padding-block: 10px; }
+  .examen { grid-template-columns: 1fr; gap: 14px; }
+  .en-cours-lib { display: none; }
+  .cote { position: sticky; top: calc(var(--haut-tete, 66px) + 8px); z-index: 5; display: grid; grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; gap: 8px 16px; padding: 10px 14px; border: 1px solid var(--ligne); border-radius: 16px; background: rgba(6, 13, 12, .94); text-align: left; }
+  .chrono { grid-row: span 2; width: 84px; }
+  .chrono-s { font-size: 2.1rem; }
+  .chrono-unite { display: none; }
+  .progression { justify-content: flex-start; gap: 8px; max-width: none; }
+  .compteur { grid-template-columns: auto auto; align-items: baseline; gap: 10px; }
+  .faits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .faits li:nth-child(3) { border-left: 0; }
+  .faits li:nth-child(n + 3) { border-top: 1px solid var(--ligne); }
+  .champs { grid-template-columns: 1fr; }
+  .aide { display: none; }
+  .q-pied { justify-content: flex-end; }
+  .lune { top: 14vh; right: 6vw; width: 54px; height: 54px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="ciel" aria-hidden="true">
+  <div class="lune"></div>
+  <div class="filigrane">医</div>
+  <svg class="dunes" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path class="dune-loin" d="M0,190 C160,150 330,214 520,186 C710,158 860,96 1060,132 C1240,164 1340,150 1440,124 L1440,320 L0,320 Z"/>
+    <path class="dune-milieu" d="M0,238 C210,206 390,262 610,236 C830,210 990,182 1190,214 C1310,232 1390,226 1440,214 L1440,320 L0,320 Z"/>
+    <path class="dune-pres" d="M0,284 C240,262 470,300 720,284 C960,268 1180,252 1440,276 L1440,320 L0,320 Z"/>
+  </svg>
+  <div class="grain"></div>
+</div>
+<canvas id="sable" aria-hidden="true"></canvas>
+
+<div class="bandeau" id="bandeau" role="status" hidden></div>
+
+<header class="tete">
+  <div class="tete-int">
+    <button type="button" class="marque" id="lien-accueil" aria-label="Seimei, retour à l’accueil">
+      <span class="sceau" aria-hidden="true">医</span>
+      <span class="marque-txt"><span class="marque-nom">Seimei</span><span class="marque-sous">Examens · Suna</span></span>
+    </button>
+    <nav class="nav" aria-label="Sections">
+      <button type="button" class="nav-btn" id="onglet-examen" aria-current="page"><span class="nav-kanji" aria-hidden="true">試</span>Examen</button>
+      <button type="button" class="nav-btn" id="onglet-gerance"><span class="nav-kanji" aria-hidden="true">封</span>Gérance</button>
+    </nav>
+    <p class="en-cours" id="en-cours" hidden><span class="en-cours-lib">Examen en cours ·</span><span id="en-cours-nom"></span></p>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Accueil -->
+  <section id="vue-accueil" class="vue">
+    <div class="hero">
+      <div>
+        <p class="surtitre">Seimei · Corps médical de Suna</p>
+        <h1 class="hero-titre">Examen de <em>passage</em><span class="sr"> d’observateur à infirmier</span></h1>
+        <div class="parcours" aria-hidden="true">
+          <span class="grade">Observateur</span><span class="trait"></span><span class="grade vise">Infirmier</span>
+        </div>
+        <p class="hero-lead">Hémorragies, fractures, brûlures, aloe vera, arrêt cardiaque, et l’organisation de la Seimei. Chaque question se joue en quelques secondes : seuls les réflexes acquis tiennent.</p>
+        <div class="hero-actions">
+          <button type="button" class="btn btn-chakra btn-large" id="btn-passer">Passer l’examen <span class="fleche" aria-hidden="true">→</span></button>
+          <p class="note">Aucune inscription : votre nom et votre prénom suffisent.</p>
+        </div>
+      </div>
+      <div class="embleme" aria-hidden="true">
+        <svg viewBox="0 0 400 400">
+          <defs>
+            <radialGradient id="emb-halo">
+              <stop offset="0" stop-color="#55e6b3" stop-opacity=".32"/>
+              <stop offset=".55" stop-color="#55e6b3" stop-opacity=".08"/>
+              <stop offset="1" stop-color="#55e6b3" stop-opacity="0"/>
+            </radialGradient>
+            <path id="emb-cercle" d="M 200,200 m -158,0 a 158,158 0 1,1 316,0 a 158,158 0 1,1 -316,0"/>
+          </defs>
+          <circle class="emb-halo" cx="200" cy="200" r="190" fill="url(#emb-halo)"/>
+          <g class="emb-lent">
+            <circle cx="200" cy="200" r="188" fill="none" stroke="rgba(220,187,124,.32)" stroke-width="8" stroke-dasharray="1.2 15.2"/>
+            <circle cx="200" cy="200" r="188" fill="none" stroke="rgba(220,187,124,.6)" stroke-width="16" stroke-dasharray="2.2 96.2"/>
+          </g>
+          <g class="emb-inverse">
+            <text class="emb-texte"><textPath href="#emb-cercle" textLength="985" lengthAdjust="spacing">SEIMEI · EXAMEN DE PASSAGE · CORPS MÉDICAL DE SUNA · OBSERVATEUR · INFIRMIER ·</textPath></text>
+          </g>
+          <circle cx="200" cy="200" r="138" fill="none" stroke="rgba(222,196,140,.16)"/>
+          <g class="emb-orbite">
+            <circle cx="200" cy="200" r="126" fill="none" stroke="#55e6b3" stroke-opacity=".75" stroke-width="1.6" stroke-dasharray="250 542" stroke-linecap="round" style="filter: drop-shadow(0 0 6px rgba(85,230,179,.9))"/>
+            <circle cx="326" cy="200" r="4.5" fill="#bff8e3" style="filter: drop-shadow(0 0 8px #55e6b3)"/>
+          </g>
+          <g transform="rotate(-6 200 200)">
+            <rect x="136" y="136" width="128" height="128" rx="20" fill="#e5553e" style="filter: drop-shadow(0 18px 30px rgba(229,85,62,.45))"/>
+            <rect x="145" y="145" width="110" height="110" rx="14" fill="none" stroke="rgba(255,243,234,.55)" stroke-width="2"/>
+            <text class="emb-sceau" x="200" y="232" text-anchor="middle">医</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <ul class="faits">
+      <li><strong data-info="total">17</strong><span>questions</span></li>
+      <li><strong><span data-info="secondes">15</span><small>s</small></strong><span>par question</span></li>
+      <li class="rouge"><strong data-info="nbElim">2</strong><span>éliminatoires</span></li>
+      <li><strong>QCU</strong><span>une seule bonne réponse</span></li>
+    </ul>
+    <div class="regles">
+      <article class="regle"><span class="regle-kanji" aria-hidden="true">時</span><h3>Le temps presse</h3><p><span data-info="secondes">15</span> secondes par question. À zéro, la suivante s’affiche : la réponse cochée compte quand même.</p></article>
+      <article class="regle rouge"><span class="regle-kanji" aria-hidden="true">断</span><h3>Questions éliminatoires</h3><p>Elles portent sur l’organisation de la Seimei. Une seule erreur et l’examen est échoué.</p></article>
+      <article class="regle"><span class="regle-kanji" aria-hidden="true">集</span><h3>Aucun retour en arrière</h3><p>Une réponse validée est définitive. Chaque sortie de la page est signalée à la gérance.</p></article>
+    </div>
+  </section>
+
+  <!-- Identité -->
+  <section id="vue-identite" class="vue" hidden>
+    <form class="carte coins identite" id="form-identite" novalidate>
+      <p class="surtitre" data-info="titre">Examen de passage d’observateur à infirmier</p>
+      <h2>Identité du candidat</h2>
+      <p class="note">Indiquez votre nom et votre prénom : ils seront transmis à la gérance avec vos réponses.</p>
+      <div class="champs">
+        <label class="champ"><input id="champ-nom" name="nom" autocomplete="family-name" maxlength="40" placeholder=" " required><span>Nom</span></label>
+        <label class="champ"><input id="champ-prenom" name="prenom" autocomplete="given-name" maxlength="40" placeholder=" " required><span>Prénom</span></label>
+      </div>
+      <p class="avertissement"><span class="avertissement-kanji" aria-hidden="true">時</span><span>Le chronomètre démarre dès que vous cliquez sur <b>«&nbsp;Commencer le test&nbsp;»</b>. Restez sur cette page jusqu’à la fin : chaque sortie est signalée à la gérance.</span></p>
+      <p class="erreur" id="erreur-identite" role="alert" hidden></p>
+      <div class="actions">
+        <button type="button" class="btn btn-sobre" id="btn-retour">Retour</button>
+        <button type="submit" class="btn btn-chakra" id="btn-commencer">Commencer le test</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Question -->
+  <section id="vue-question" class="vue" hidden>
+    <div class="examen">
+      <aside class="cote">
+        <div class="chrono" id="chrono" role="timer" aria-label="Temps restant">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="chrono-fond" cx="60" cy="60" r="52"/>
+            <circle class="chrono-graduation" cx="60" cy="60" r="58"/>
+            <circle class="chrono-arc" id="chrono-arc" cx="60" cy="60" r="52"/>
+          </svg>
+          <div class="chrono-centre"><span class="chrono-s" id="chrono-s">15</span><span class="chrono-unite">secondes</span></div>
+        </div>
+        <p class="compteur"><span class="compteur-lib">Question</span><span class="compteur-nb"><span id="q-num">01</span> <small>/ <span id="q-total">17</span></small></span></p>
+        <ol class="progression" id="progression" aria-hidden="true"></ol>
+      </aside>
+      <article class="carte coins carte-q" id="carte-q">
+        <div class="q-tete">
+          <span class="badge-elim" id="q-elim" hidden><span class="badge-sceau" aria-hidden="true">断</span>Question éliminatoire</span>
+          <span class="q-theme" id="q-theme"></span>
+          <span class="q-flash" id="q-flash" role="status" hidden>Temps écoulé : question suivante</span>
+        </div>
+        <h2 class="q-texte" id="q-texte"></h2>
+        <div class="options" id="q-options" role="radiogroup" aria-labelledby="q-texte"></div>
+        <div class="q-pied">
+          <p class="aide"><kbd>A</kbd> à <kbd>D</kbd> pour choisir · <kbd>Entrée</kbd> pour valider</p>
+          <button type="button" class="btn btn-chakra" id="btn-valider" disabled>Valider <span class="fleche" aria-hidden="true">→</span></button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Envoi -->
+  <section id="vue-envoi" class="vue" hidden>
+    <div class="envoi">
+      <div class="roue" id="envoi-roue" aria-hidden="true"></div>
+      <h2 id="envoi-titre">Transmission de vos réponses…</h2>
+      <p class="note" id="envoi-texte">Ne fermez pas cette page.</p>
+      <p class="erreur" id="erreur-envoi" role="alert" hidden></p>
+      <button type="button" class="btn btn-chakra" id="btn-renvoyer" hidden>Réessayer l’envoi</button>
+    </div>
+  </section>
+
+  <!-- Fin -->
+  <section id="vue-fin" class="vue" hidden>
+    <div class="carte coins fin">
+      <div class="tampon" aria-hidden="true">医</div>
+      <p class="surtitre">Examen terminé</p>
+      <h2 id="fin-titre">Merci</h2>
+      <p class="fin-message" id="fin-message"></p>
+      <div class="fin-resultat" id="fin-resultat" hidden></div>
+      <p class="ref">Référence du passage <code id="fin-ref"></code></p>
+      <button type="button" class="btn btn-sobre" id="btn-accueil">Retour à l’accueil</button>
+    </div>
+  </section>
+
+  <!-- Gérance -->
+  <section id="vue-gerance" class="vue" hidden>
+    <form class="carte coins verrou" id="form-code" novalidate>
+      <div class="fuin" aria-hidden="true"><span>封</span></div>
+      <p class="surtitre">Fūin · Accès scellé</p>
+      <h2>Espace gérance</h2>
+      <p>Réservé à la gérance et à la co-gérance de la Seimei. Le code d’accès lève le sceau.</p>
+      <label class="champ"><input type="password" id="champ-code" autocomplete="off" placeholder=" " required><span>Code d’accès</span></label>
+      <p class="erreur" id="erreur-code" role="alert" hidden></p>
+      <button type="submit" class="btn btn-chakra" id="btn-deverrouiller">Briser le sceau</button>
+    </form>
+
+    <div id="tableau-gerance" hidden>
+      <div class="g-tete">
+        <div>
+          <p class="surtitre">Espace gérance</p>
+          <h2 class="g-titre">Résultats des examens</h2>
+          <p class="g-sous" id="g-sous"></p>
+        </div>
+        <div class="g-actions">
+          <span class="maj" id="g-maj"></span>
+          <button type="button" class="btn btn-sobre" id="btn-actualiser">Actualiser</button>
+          <button type="button" class="btn btn-sobre" id="btn-verrouiller">Verrouiller</button>
+        </div>
+      </div>
+      <p class="erreur" id="g-erreur" role="alert" hidden></p>
+      <div class="stats" id="g-stats" role="group" aria-label="Filtrer par résultat"></div>
+      <div class="graphes">
+        <article class="carte graphe">
+          <div class="graphe-tete"><h3>Répartition des scores</h3><p class="taux" id="g-taux"></p></div>
+          <div id="g-histo"></div>
+        </article>
+        <article class="carte graphe">
+          <div class="graphe-tete"><h3>Questions les plus ratées</h3></div>
+          <div id="g-ratees"></div>
+        </article>
+      </div>
+      <div class="liste-tete">
+        <h3>Passages</h3>
+        <input type="search" class="recherche" id="g-recherche" placeholder="Rechercher un candidat ou une référence" aria-label="Rechercher un candidat ou une référence">
+      </div>
+      <div class="liste" id="g-liste"></div>
+    </div>
+  </section>
+</main>
+
+<div class="decompte" id="decompte" hidden>
+  <div class="decompte-int" aria-live="assertive">
+    <p class="decompte-txt">L’examen commence</p>
+    <span class="decompte-n" id="decompte-n">3</span>
+    <p class="decompte-nom" id="decompte-nom"></p>
+  </div>
+</div>
+
+<footer class="pied"><b>Seimei</b> · Examens internes du corps médical de Suna</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>
+/* =============================================================
+   CONFIGURATION : URL et clé PUBLIQUE du projet Supabase
+   (Supabase → Project Settings → Data API et API Keys).
+   Ne jamais mettre ici la clé secrète.
+   ============================================================= */
+const CONFIG = {
+  SUPABASE_URL: "",
+  SUPABASE_KEY: "sb_publishable_FaD9aSyIdNxNY6aXe07N1w_ZeQ1W694",
+};
+
+(function () {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const VUES = ['vue-accueil', 'vue-identite', 'vue-question', 'vue-envoi', 'vue-fin', 'vue-gerance'];
+  const LETTRES = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const FILTRE_DE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'En cours': 'encours', 'Interrompu': 'encours' };
+  const TEINTE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'En cours': 'encours', 'Interrompu': 'interrompu' };
+  const STATS = [['tous', 'Passages'], ['reussi', 'Réussis'], ['echoue', 'Échoués'], ['elimine', 'Éliminés'], ['encours', 'En cours']];
+  const INTERRUPTION_MS = 10 * 60 * 1000;
+  const CIRCONFERENCE = 2 * Math.PI * 52;
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const RESEAU = 'Connexion au serveur impossible. Vérifiez votre connexion puis réessayez.';
+  const mouvementReduit = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const etat = {
+    infos: { titre: 'Examen de passage d’observateur à infirmier', nbElim: 2, nbQuestions: 15, secondes: 15 },
+    vueExamen: 'vue-accueil',
+    candidat: null,
+    passage: null,
+    index: 0,
+    reponses: [],
+    choix: null,
+    enCours: false,
+    verrou: false,
+    tempsEcoule: false,
+    debutQuestion: 0,
+    raf: 0,
+    minuteur: 0,
+    flash: 0,
+    sorties: 0,
+    gerance: { code: null, donnees: null, filtre: 'tous', recherche: '', ouvert: null, aSupprimer: null },
+  };
+
+  // ── Outils ────────────────────────────────────────────────────────────────
+  function h(tag, attrs, ...enfants) {
+    const el = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach((cle) => {
+        const v = attrs[cle];
+        if (v === false || v == null) return;
+        if (cle === 'class') el.className = v;
+        else if (cle.startsWith('on')) el.addEventListener(cle.slice(2), v);
+        else el.setAttribute(cle, v === true ? '' : String(v));
+      });
+    }
+    enfants.flat(Infinity).forEach((e) => {
+      if (e == null || e === false || e === '') return;
+      el.append(e instanceof Node ? e : String(e));
+    });
+    return el;
+  }
+
+  function svg(tag, attrs, texte) {
+    const el = document.createElementNS(SVG_NS, tag);
+    if (attrs) Object.keys(attrs).forEach((cle) => { if (attrs[cle] != null) el.setAttribute(cle, String(attrs[cle])); });
+    if (texte != null) el.textContent = String(texte);
+    return el;
+  }
+
+  // Typographie française : espace insécable avant ? ! : ;
+  const typo = (s) => String(s).replace(/ ([?!:;])/g, ' $1');
+  const normaliser = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+  const deux = (n) => String(n).padStart(2, '0');
+  const heure = (ms) => new Date(ms).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const dateCourte = (ms) => (ms ? new Date(ms).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) + ' · ' + heure(ms) : '—');
+  const dateLongue = (ms) => (ms ? new Date(ms).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—');
+  const secondes = (ms) => (ms / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' s';
+
+  function duree(s) {
+    if (s == null || s === '') return '—';
+    s = Math.round(s);
+    return s < 60 ? s + ' s' : Math.floor(s / 60) + ' min ' + deux(s % 60) + ' s';
+  }
+
+  function montrerErreur(id, texte) {
+    const el = $(id);
+    el.textContent = texte;
+    el.hidden = false;
+  }
+
+  function cacherErreur(id) {
+    $(id).hidden = true;
+  }
+
+  function attendre(ms) {
+    return new Promise((fin) => setTimeout(fin, ms));
+  }
+
+  // Hauteur réelle de l’en-tête collant : le chrono se colle juste en dessous.
+  function mesurerTete() {
+    document.documentElement.style.setProperty('--haut-tete', document.querySelector('.tete').offsetHeight + 'px');
+  }
+  window.addEventListener('resize', mesurerTete);
+
+  // ── Serveur (Supabase) ────────────────────────────────────────────────────
+  const client = (function () {
+    if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY || !window.supabase || !window.supabase.createClient) return null;
+    return window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+  })();
+
+  function problemeConfig() {
+    if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY) return 'Le site n’est pas encore relié à sa base de données.';
+    return 'La connexion à la base de données n’a pas pu se charger. Rechargez la page.';
+  }
+
+  async function appel(nom, args) {
+    if (!client) throw new Error(problemeConfig());
+    let res;
+    try {
+      res = await client.rpc(nom, args || {});
+    } catch (e) {
+      throw new Error(RESEAU);
+    }
+    if (res.error) {
+      const m = String(res.error.message || '');
+      if (/fetch|network|load failed/i.test(m)) throw new Error(RESEAU);
+      if (/could not find the function|schema cache/i.test(m)) throw new Error('La base de données n’est pas encore installée.');
+      throw new Error(m || 'Erreur du serveur.');
+    }
+    if (res.data && res.data.erreur) throw new Error(res.data.erreur);
+    return res.data;
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function afficher(vue) {
+    VUES.forEach((v) => { $(v).hidden = v !== vue; });
+    const gerance = vue === 'vue-gerance';
+    if (!gerance) etat.vueExamen = vue;
+    $(gerance ? 'onglet-gerance' : 'onglet-examen').setAttribute('aria-current', 'page');
+    $(gerance ? 'onglet-examen' : 'onglet-gerance').removeAttribute('aria-current');
+    window.scrollTo(0, 0);
+  }
+
+  $('onglet-examen').addEventListener('click', () => {
+    if (!etat.enCours) afficher(etat.vueExamen);
+  });
+  $('onglet-gerance').addEventListener('click', () => {
+    if (etat.enCours) return;
+    afficher('vue-gerance');
+    if (!etat.gerance.code) $('champ-code').focus();
+  });
+  $('lien-accueil').addEventListener('click', () => {
+    if (etat.enCours) return;
+    if (etat.vueExamen === 'vue-fin' || etat.vueExamen === 'vue-identite') etat.vueExamen = 'vue-accueil';
+    afficher(etat.vueExamen === 'vue-envoi' ? 'vue-envoi' : 'vue-accueil');
+  });
+
+  // ── Accueil et identité ───────────────────────────────────────────────────
+  function majInfos() {
+    const i = etat.infos;
+    document.querySelectorAll('[data-info]').forEach((el) => {
+      const cle = el.dataset.info;
+      el.textContent = cle === 'total' ? i.nbElim + i.nbQuestions : i[cle];
+    });
+  }
+
+  $('btn-passer').addEventListener('click', () => {
+    afficher('vue-identite');
+    $('champ-nom').focus();
+  });
+  $('btn-retour').addEventListener('click', () => afficher('vue-accueil'));
+
+  $('form-identite').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const nom = $('champ-nom').value.replace(/\s+/g, ' ').trim();
+    const prenom = $('champ-prenom').value.replace(/\s+/g, ' ').trim();
+    if (!nom || !prenom) {
+      montrerErreur('erreur-identite', 'Indiquez votre nom et votre prénom pour commencer.');
+      (nom ? $('champ-prenom') : $('champ-nom')).focus();
+      return;
+    }
+    cacherErreur('erreur-identite');
+    const bouton = $('btn-commencer');
+    bouton.disabled = true;
+    bouton.textContent = 'Préparation de l’examen…';
+    try {
+      const passage = await appel('demarrer_examen', { p_nom: nom, p_prenom: prenom });
+      etat.candidat = { nom: nom, prenom: prenom };
+      await lancerExamen(passage);
+    } catch (e) {
+      montrerErreur('erreur-identite', 'L’examen n’a pas pu démarrer : ' + e.message);
+    } finally {
+      bouton.disabled = false;
+      bouton.textContent = 'Commencer le test';
+    }
+  });
+
+  // ── Déroulé de l’examen ───────────────────────────────────────────────────
+  async function lancerExamen(passage) {
+    Object.assign(etat, { passage: passage, index: 0, reponses: [], choix: null, enCours: true, tempsEcoule: false, sorties: 0 });
+    document.body.classList.add('en-examen');
+    $('en-cours-nom').textContent = etat.candidat.prenom + ' ' + etat.candidat.nom;
+    $('en-cours').hidden = false;
+    mesurerTete();
+    $('q-total').textContent = deux(passage.questions.length);
+    $('progression').replaceChildren(...passage.questions.map((q) => h('li', { class: q.type === 'elim' ? 'elim' : null })));
+    await decompte();
+    afficher('vue-question');
+    afficherQuestion();
+  }
+
+  function decompte() {
+    return new Promise((fin) => {
+      const voile = $('decompte');
+      const n = $('decompte-n');
+      $('decompte-nom').textContent = etat.candidat.prenom + ' ' + etat.candidat.nom;
+      voile.hidden = false;
+      let i = 3;
+      const suivant = () => {
+        if (i === 0) {
+          voile.hidden = true;
+          fin();
+          return;
+        }
+        n.textContent = i;
+        n.classList.remove('tic');
+        void n.offsetWidth;
+        n.classList.add('tic');
+        i -= 1;
+        setTimeout(suivant, 800);
+      };
+      suivant();
+    });
+  }
+
+  function afficherQuestion() {
+    const q = etat.passage.questions[etat.index];
+    $('q-num').textContent = deux(etat.index + 1);
+    $('q-elim').hidden = q.type !== 'elim';
+    $('q-theme').textContent = q.theme;
+    $('q-texte').textContent = typo(q.texte);
+    $('q-options').replaceChildren(...q.options.map((texte, i) => h('button', {
+      type: 'button', class: 'option', role: 'radio', 'aria-checked': 'false', tabindex: i === 0 ? '0' : '-1',
+      onclick: () => choisir(i, false),
+    }, h('span', { class: 'option-lettre', 'aria-hidden': 'true' }, LETTRES[i]), h('span', { class: 'option-texte' }, typo(texte)))));
+    etat.choix = null;
+    etat.verrou = false;
+    $('btn-valider').disabled = true;
+    Array.from($('progression').children).forEach((li, i) => {
+      li.classList.toggle('fait', i < etat.index);
+      li.classList.toggle('actuel', i === etat.index);
+    });
+
+    clearTimeout(etat.flash);
+    $('q-flash').hidden = !etat.tempsEcoule;
+    if (etat.tempsEcoule) etat.flash = setTimeout(() => { $('q-flash').hidden = true; }, 2200);
+
+    const carte = $('carte-q');
+    carte.classList.remove('entree');
+    void carte.offsetWidth;
+    carte.classList.add('entree');
+    demarrerChrono();
+  }
+
+  function choisir(i, focus) {
+    if (!etat.enCours || etat.verrou) return;
+    etat.choix = i;
+    const boutons = Array.from($('q-options').children);
+    boutons.forEach((b, k) => {
+      b.setAttribute('aria-checked', String(k === i));
+      b.tabIndex = k === i ? 0 : -1;
+    });
+    if (focus) boutons[i].focus();
+    $('btn-valider').disabled = false;
+  }
+
+  function demarrerChrono() {
+    arreterChrono();
+    const total = etat.passage.secondes * 1000;
+    etat.debutQuestion = Date.now();
+    const echeance = etat.debutQuestion + total;
+    const chrono = $('chrono');
+    const chiffres = $('chrono-s');
+    const arc = $('chrono-arc');
+    const tic = () => {
+      const reste = Math.max(0, echeance - Date.now());
+      chiffres.textContent = Math.ceil(reste / 1000);
+      arc.style.strokeDashoffset = (CIRCONFERENCE * (1 - reste / total)).toFixed(2);
+      const urgent = reste <= 5000;
+      chrono.classList.toggle('urgent', urgent);
+      document.body.classList.toggle('urgence', urgent);
+      if (reste <= 0) {
+        valider(true);
+        return;
+      }
+      etat.raf = requestAnimationFrame(tic);
+    };
+    tic();
+    // Filet de sécurité : requestAnimationFrame s’arrête quand l’onglet est caché.
+    etat.minuteur = setTimeout(() => valider(true), total + 100);
+  }
+
+  function arreterChrono() {
+    cancelAnimationFrame(etat.raf);
+    clearTimeout(etat.minuteur);
+    document.body.classList.remove('urgence');
+  }
+
+  function valider(parTemps) {
+    if (!etat.enCours || etat.verrou) return;
+    if (!parTemps && etat.choix === null) return;
+    etat.verrou = true;
+    arreterChrono();
+    const limite = etat.passage.secondes * 1000;
+    etat.reponses[etat.index] = { choix: etat.choix, ms: parTemps ? limite : Math.min(Date.now() - etat.debutQuestion, limite) };
+    etat.tempsEcoule = parTemps;
+    etat.index += 1;
+    if (etat.index < etat.passage.questions.length) {
+      afficherQuestion();
+    } else {
+      etat.enCours = false;
+      afficher('vue-envoi');
+      envoyer();
+    }
+  }
+
+  $('btn-valider').addEventListener('click', () => valider(false));
+
+  document.addEventListener('keydown', (ev) => {
+    if (!etat.enCours || etat.verrou || $('vue-question').hidden) return;
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const nb = etat.passage.questions[etat.index].options.length;
+    const touche = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key;
+    let i = LETTRES.indexOf(touche);
+    if (i < 0 && /^[1-9]$/.test(touche)) i = Number(touche) - 1;
+    if (i >= 0 && i < nb) {
+      ev.preventDefault();
+      choisir(i, true);
+    } else if (['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(ev.key)) {
+      ev.preventDefault();
+      const pas = ev.key === 'ArrowDown' || ev.key === 'ArrowRight' ? 1 : -1;
+      const depart = etat.choix === null ? (pas > 0 ? -1 : 0) : etat.choix;
+      choisir((depart + pas + nb) % nb, true);
+    } else if (ev.key === 'Enter' && etat.choix !== null) {
+      ev.preventDefault();
+      valider(false);
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && etat.enCours) etat.sorties += 1;
+  });
+  window.addEventListener('beforeunload', (ev) => {
+    if (etat.enCours) {
+      ev.preventDefault();
+      ev.returnValue = '';
+    }
+  });
+
+  // ── Envoi et fin ──────────────────────────────────────────────────────────
+  async function envoyer() {
+    cacherErreur('erreur-envoi');
+    $('btn-renvoyer').hidden = true;
+    $('envoi-roue').hidden = false;
+    $('envoi-texte').hidden = false;
+    $('envoi-titre').textContent = 'Transmission de vos réponses…';
+    try {
+      const res = await appel('terminer_examen', { p_id: etat.passage.id, p_reponses: etat.reponses, p_sorties: etat.sorties });
+      document.body.classList.remove('en-examen');
+      $('en-cours').hidden = true;
+      mesurerTete();
+      montrerFin(res || {});
+    } catch (e) {
+      $('envoi-roue').hidden = true;
+      $('envoi-texte').hidden = true;
+      $('envoi-titre').textContent = 'L’envoi n’a pas abouti';
+      montrerErreur('erreur-envoi', e.message + ' Vos réponses sont gardées sur cette page.');
+      $('btn-renvoyer').hidden = false;
+    }
+  }
+
+  $('btn-renvoyer').addEventListener('click', envoyer);
+
+  function montrerFin(res) {
+    const c = etat.candidat;
+    const bloc = $('fin-resultat');
+    $('fin-titre').textContent = 'Merci, ' + c.prenom + ' ' + c.nom;
+    $('fin-ref').textContent = res.id || etat.passage.id;
+    if (res.resultat) {
+      $('fin-message').textContent = 'Vos réponses ont été transmises à la gérance de la Seimei.';
+      bloc.replaceChildren(
+        h('span', { class: 'pill t-' + (TEINTE[res.resultat] || 'interrompu') }, res.resultat),
+        h('span', null, 'Score : ' + res.score + '/' + res.nbQuestions + ' · Éliminatoires : ' + res.elim + '/' + res.nbElim));
+      bloc.hidden = false;
+    } else {
+      $('fin-message').textContent = 'Vos réponses ont été transmises à la gérance de la Seimei, qui vous communiquera votre résultat.';
+      bloc.hidden = true;
+    }
+    afficher('vue-fin');
+  }
+
+  $('btn-accueil').addEventListener('click', () => {
+    $('form-identite').reset();
+    etat.passage = null;
+    afficher('vue-accueil');
+  });
+
+  // ── Gérance ───────────────────────────────────────────────────────────────
+  $('form-code').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const code = $('champ-code').value.trim();
+    if (!code) {
+      montrerErreur('erreur-code', 'Saisissez le code d’accès.');
+      return;
+    }
+    cacherErreur('erreur-code');
+    const bouton = $('btn-deverrouiller');
+    bouton.disabled = true;
+    bouton.textContent = 'Vérification…';
+    try {
+      const donnees = await appel('lire_resultats', { p_code: code });
+      Object.assign(etat.gerance, { code: code, donnees: donnees, filtre: 'tous', recherche: '', ouvert: null, aSupprimer: null });
+      $('champ-code').value = '';
+      $('g-recherche').value = '';
+      cacherErreur('g-erreur');
+      if (!mouvementReduit.matches) {
+        $('form-code').classList.add('brise');
+        await attendre(420);
+      }
+      $('form-code').classList.remove('brise');
+      $('form-code').hidden = true;
+      $('tableau-gerance').hidden = false;
+      rendreGerance();
+    } catch (e) {
+      montrerErreur('erreur-code', e.message);
+      $('champ-code').select();
+    } finally {
+      bouton.disabled = false;
+      bouton.textContent = 'Briser le sceau';
+    }
+  });
+
+  function verrouiller() {
+    Object.assign(etat.gerance, { code: null, donnees: null, ouvert: null, aSupprimer: null });
+    $('g-liste').replaceChildren();
+    $('tableau-gerance').hidden = true;
+    $('form-code').hidden = false;
+    $('champ-code').value = '';
+  }
+
+  async function actualiser() {
+    const g = etat.gerance;
+    const bouton = $('btn-actualiser');
+    bouton.disabled = true;
+    bouton.textContent = 'Actualisation…';
+    try {
+      g.donnees = await appel('lire_resultats', { p_code: g.code });
+      cacherErreur('g-erreur');
+      rendreGerance();
+    } catch (e) {
+      if (/code d.acc|essais|pas encore défini/i.test(e.message)) {
+        verrouiller();
+        montrerErreur('erreur-code', e.message);
+      } else {
+        montrerErreur('g-erreur', 'Actualisation impossible : ' + e.message);
+      }
+    } finally {
+      bouton.disabled = false;
+      bouton.textContent = 'Actualiser';
+    }
+  }
+
+  $('btn-actualiser').addEventListener('click', actualiser);
+  $('btn-verrouiller').addEventListener('click', verrouiller);
+  $('g-recherche').addEventListener('input', (ev) => {
+    etat.gerance.recherche = ev.target.value;
+    rendreListe();
+  });
+
+  function statutAffiche(p, maintenant) {
+    if (p.statut === 'Terminé') return p.resultat || 'Terminé';
+    return maintenant - (p.debut || 0) > INTERRUPTION_MS ? 'Interrompu' : 'En cours';
+  }
+
+  function preparerPassages(passages) {
+    const maintenant = Date.now();
+    const liste = passages.map((p) => Object.assign({}, p, { affiche: statutAffiche(p, maintenant), cle: normaliser(p.prenom + ' ' + p.nom) }));
+    const compte = {};
+    liste.slice().sort((a, b) => (a.debut || 0) - (b.debut || 0)).forEach((p) => {
+      compte[p.cle] = (compte[p.cle] || 0) + 1;
+      p.tentative = compte[p.cle];
+    });
+    liste.forEach((p) => { p.nbTentatives = compte[p.cle]; });
+    return liste;
+  }
+
+  function rendreGerance() {
+    const g = etat.gerance;
+    const d = g.donnees;
+    if (!d) return;
+    g.passages = preparerPassages(d.passages);
+    $('g-sous').textContent = 'Réussite : au moins ' + d.seuil + ' bonnes réponses sur ' + d.nbQuestions + ', sans aucune erreur aux ' + d.nbElim + ' questions éliminatoires.';
+    $('g-maj').textContent = 'Mis à jour à ' + heure(Date.now());
+    rendreStats();
+    rendreHistogramme();
+    rendreRatees();
+    rendreListe();
+  }
+
+  function rendreStats() {
+    const g = etat.gerance;
+    const nb = { tous: g.passages.length, reussi: 0, echoue: 0, elimine: 0, encours: 0 };
+    g.passages.forEach((p) => {
+      const f = FILTRE_DE[p.affiche];
+      if (f) nb[f] += 1;
+    });
+    $('g-stats').replaceChildren(...STATS.map(([cle, libelle]) => h('button', {
+      type: 'button', class: 'stat t-' + cle, 'aria-pressed': String(g.filtre === cle),
+      onclick: () => { g.filtre = cle; rendreStats(); rendreListe(); },
+    }, h('span', { class: 'stat-lib' }, libelle), h('span', { class: 'stat-nb' }, nb[cle]))));
+  }
+
+  function rendreHistogramme() {
+    const g = etat.gerance;
+    const d = g.donnees;
+    const boite = $('g-histo');
+    const termines = g.passages.filter((p) => p.statut === 'Terminé' && p.score != null);
+    if (!termines.length) {
+      $('g-taux').replaceChildren();
+      boite.replaceChildren(h('p', { class: 'vide-graphe' }, 'Le graphique apparaîtra après le premier examen terminé.'));
+      return;
+    }
+    const reussis = termines.filter((p) => p.resultat === 'Réussi').length;
+    $('g-taux').replaceChildren(Math.round((100 * reussis) / termines.length) + ' %', h('small', null, 'de réussite'));
+
+    const n = d.nbQuestions;
+    const compte = Array.from({ length: n + 1 }, () => 0);
+    termines.forEach((p) => { compte[Math.max(0, Math.min(n, p.score))] += 1; });
+    const max = Math.max(...compte);
+    const L = 560;
+    const H = 210;
+    const bas = 26;
+    const haut = 26;
+    const marge = 8;
+    const pas = (L - 2 * marge) / (n + 1);
+    const larg = Math.max(4, pas * 0.62);
+    const graphe = svg('svg', { viewBox: '0 0 ' + L + ' ' + H, class: 'histo', role: 'img',
+      'aria-label': 'Répartition des scores de ' + termines.length + ' examens terminés' });
+    graphe.append(svg('line', { x1: marge, x2: L - marge, y1: H - bas, y2: H - bas, class: 'base' }));
+    const xSeuil = marge + pas * Math.min(d.seuil, n);
+    graphe.append(svg('line', { x1: xSeuil, x2: xSeuil, y1: 10, y2: H - bas, class: 'seuil' }));
+    graphe.append(svg('text', { x: xSeuil + 6, y: 18, class: 'seuil-txt' }, 'seuil ' + d.seuil));
+    compte.forEach((c, s) => {
+      const x = marge + pas * s + (pas - larg) / 2;
+      const hauteur = max ? ((H - bas - haut) * c) / max : 0;
+      const y = H - bas - hauteur;
+      if (c > 0) {
+        const barre = svg('rect', { x: x.toFixed(1), y: y.toFixed(1), width: larg.toFixed(1), height: Math.max(hauteur, 2).toFixed(1), rx: 3, class: s >= d.seuil ? 'barre-ok' : 'barre' });
+        barre.append(svg('title', null, s + '/' + n + ' : ' + c + ' candidat' + (c > 1 ? 's' : '')));
+        graphe.append(barre, svg('text', { x: (x + larg / 2).toFixed(1), y: (y - 6).toFixed(1), class: 'val' }, c));
+      }
+      if (s % 5 === 0 || s === n) graphe.append(svg('text', { x: (x + larg / 2).toFixed(1), y: H - 8 }, s));
+    });
+    boite.replaceChildren(graphe);
+  }
+
+  function rendreRatees() {
+    const g = etat.gerance;
+    const stats = new Map();
+    g.passages.forEach((p) => {
+      if (p.statut !== 'Terminé') return;
+      p.detail.forEach((r) => {
+        const s = stats.get(r.question) || { question: r.question, n: 0, ko: 0 };
+        s.n += 1;
+        if (!r.correct) s.ko += 1;
+        stats.set(r.question, s);
+      });
+    });
+    const top = Array.from(stats.values()).filter((s) => s.ko > 0)
+      .sort((a, b) => b.ko / b.n - a.ko / a.n || b.ko - a.ko).slice(0, 5);
+    if (!top.length) {
+      $('g-ratees').replaceChildren(h('p', { class: 'vide-graphe' }, 'Aucune erreur enregistrée pour l’instant.'));
+      return;
+    }
+    $('g-ratees').replaceChildren(h('ol', { class: 'ratees' }, top.map((s) => h('li', { class: 'ratee' },
+      h('span', { class: 'ratee-q' }, typo(s.question)),
+      h('span', { class: 'ratee-ligne' },
+        h('span', { class: 'jauge' }, h('i', { style: 'width:' + Math.round((100 * s.ko) / s.n) + '%' })),
+        s.ko + '/' + s.n + ' ratée' + (s.ko > 1 ? 's' : ''))))));
+  }
+
+  function rendreListe() {
+    const g = etat.gerance;
+    const d = g.donnees;
+    if (!d) return;
+    const recherche = normaliser(g.recherche);
+    const visibles = g.passages.filter((p) => (g.filtre === 'tous' || FILTRE_DE[p.affiche] === g.filtre) &&
+      (!recherche || normaliser([p.prenom, p.nom, p.prenom, p.id].join(' ')).includes(recherche) ||
+        normaliser(p.nom + ' ' + p.prenom).includes(recherche)));
+    const liste = $('g-liste');
+    if (!g.passages.length) {
+      liste.replaceChildren(h('p', { class: 'vide' }, 'Aucun examen pour l’instant. Chaque candidat apparaîtra ici dès qu’il aura cliqué sur « Commencer le test ».'));
+    } else if (!visibles.length) {
+      liste.replaceChildren(h('p', { class: 'vide' }, 'Aucun passage ne correspond à ce filtre ou à cette recherche.'));
+    } else {
+      liste.replaceChildren(...visibles.map((p) => blocPassage(p, d)));
+    }
+  }
+
+  function initiales(p) {
+    return ((p.prenom || '').charAt(0) + (p.nom || '').charAt(0)).toUpperCase() || '?';
+  }
+
+  function blocPassage(p, d) {
+    const g = etat.gerance;
+    const ouvert = g.ouvert === p.id;
+    const termine = p.statut === 'Terminé';
+    const teinte = 't-' + (TEINTE[p.affiche] || 'interrompu');
+    const signalements = [p.sorties > 0 ? p.sorties + ' sortie' + (p.sorties > 1 ? 's' : '') + ' de page' : '', p.alertes].filter(Boolean).join(' · ');
+    const elims = termine ? p.detail.filter((r) => r.type === 'elim') : [];
+    const sous = [dateCourte(p.debut), p.nbTentatives > 1 ? 'tentative ' + p.tentative + '/' + p.nbTentatives : ''].filter(Boolean).join(' · ');
+    const ligne = h('button', {
+      type: 'button', class: 'p-ligne', 'aria-expanded': String(ouvert),
+      onclick: () => { g.ouvert = ouvert ? null : p.id; g.aSupprimer = null; rendreListe(); },
+    },
+      h('span', { class: 'p-avatar', 'aria-hidden': 'true' }, initiales(p)),
+      h('span', { class: 'p-qui' }, h('strong', null, p.prenom + ' ' + p.nom), h('small', null, sous)),
+      h('span', { class: 'p-score' }, termine ? [String(p.score), h('small', null, ' /' + d.nbQuestions)] : h('small', null, '—')),
+      h('span', { class: 'p-elim', title: termine ? 'Éliminatoires : ' + p.elim + '/' + elims.length : null },
+        elims.map((r) => h('i', { class: r.correct ? null : 'ko' })),
+        termine ? h('span', { class: 'sr' }, 'Éliminatoires : ' + p.elim + ' sur ' + elims.length) : ''),
+      h('span', { class: 'pill ' + teinte }, p.affiche),
+      h('span', { class: 'saut', 'aria-hidden': 'true' }),
+      h('span', { class: 'p-duree' }, termine ? duree(p.duree) : ''),
+      h('span', { class: 'p-alerte', title: signalements || null }, signalements ? [h('span', { 'aria-hidden': 'true' }, '⚠'), h('span', { class: 'sr' }, signalements)] : ''),
+      h('span', { class: 'chevron', 'aria-hidden': 'true' }, '›'));
+    const bloc = h('div', { class: 'passage ' + teinte + (ouvert ? ' ouvert' : '') }, ligne);
+    if (ouvert) bloc.append(detailPassage(p));
+    return bloc;
+  }
+
+  function meta(terme, valeur) {
+    return h('div', null, h('dt', null, terme), h('dd', null, valeur));
+  }
+
+  function detailPassage(p) {
+    const g = etat.gerance;
+    const termine = p.statut === 'Terminé';
+    const detail = h('div', { class: 'p-detail' },
+      h('dl', { class: 'meta' },
+        meta('Référence', h('code', null, p.id)),
+        meta('Début', dateLongue(p.debut)),
+        meta('Fin', dateLongue(p.fin)),
+        meta('Durée', termine ? duree(p.duree) : '—'),
+        meta('Sorties de page', String(p.sorties))));
+
+    if (p.alertes) detail.append(h('p', { class: 'alerte' }, h('span', { 'aria-hidden': 'true' }, '⚠'), h('span', null, p.alertes)));
+
+    if (!termine) {
+      detail.append(h('p', { class: 'note' }, p.affiche === 'Interrompu'
+        ? 'Examen commencé mais jamais envoyé (page fermée ou connexion perdue). Aucune réponse n’a été enregistrée.'
+        : 'Le candidat est en train de passer l’examen. Actualisez dans quelques minutes.'));
+    } else {
+      const themes = {};
+      p.detail.forEach((r) => {
+        if (r.type === 'elim') return;
+        const t = themes[r.theme] || (themes[r.theme] = { ok: 0, n: 0 });
+        t.n += 1;
+        if (r.correct) t.ok += 1;
+      });
+      detail.append(h('div', { class: 'themes' }, h('span', { class: 'themes-lib' }, 'Par thème'),
+        Object.keys(themes).map((t) => h('span', { class: 'theme-chip' + (themes[t].ok < themes[t].n ? ' faible' : '') }, t + ' ', h('b', null, themes[t].ok + '/' + themes[t].n)))));
+      detail.append(h('ol', { class: 'reponses' }, p.detail.map(ligneReponse)));
+    }
+
+    const actions = h('div', { class: 'detail-actions' });
+    if (g.aSupprimer === p.id) {
+      actions.append(
+        h('span', { class: 'confirmer' }, 'Supprimer définitivement ce passage ?'),
+        h('button', { type: 'button', class: 'btn btn-sobre', onclick: () => { g.aSupprimer = null; rendreListe(); } }, 'Annuler'),
+        h('button', { type: 'button', class: 'btn btn-danger plein', onclick: (ev) => supprimer(p.id, ev.currentTarget) }, 'Supprimer'));
+    } else {
+      actions.append(h('button', { type: 'button', class: 'btn btn-danger', onclick: () => { g.aSupprimer = p.id; rendreListe(); } }, 'Supprimer ce passage'));
+    }
+    detail.append(actions);
+    return detail;
+  }
+
+  function ligneReponse(r, i) {
+    const vide = r.reponse == null;
+    return h('li', { class: 'rep ' + (vide ? 'rep-vide' : r.correct ? 'rep-ok' : 'rep-ko') },
+      h('span', { class: 'rep-num' }, deux(i + 1)),
+      h('div', { class: 'rep-tete' },
+        r.type === 'elim' && h('span', { class: 'badge-elim' }, 'Éliminatoire'),
+        h('span', { class: 'q-theme' }, r.theme),
+        h('span', { class: 'rep-temps' }, vide ? 'Temps écoulé' : secondes(r.ms))),
+      h('p', { class: 'rep-q' }, typo(r.question)),
+      h('p', { class: 'rep-r' },
+        h('span', { 'aria-hidden': 'true' }, vide ? '–' : r.correct ? '✓' : '✗'),
+        vide ? h('span', null, 'Sans réponse')
+          : h('span', null, h('span', { class: 'sr' }, r.correct ? 'Bonne réponse : ' : 'Mauvaise réponse : '), typo(r.reponse))),
+      !r.correct && h('p', { class: 'rep-bonne' }, 'Bonne réponse : ', h('strong', null, typo(r.bonne))));
+  }
+
+  async function supprimer(id, bouton) {
+    const g = etat.gerance;
+    bouton.disabled = true;
+    bouton.textContent = 'Suppression…';
+    try {
+      await appel('supprimer_passage', { p_code: g.code, p_id: id });
+      g.aSupprimer = null;
+      g.ouvert = null;
+      await actualiser();
+    } catch (e) {
+      bouton.disabled = false;
+      bouton.textContent = 'Supprimer';
+      montrerErreur('g-erreur', 'Suppression impossible : ' + e.message);
+    }
+  }
+
+  // ── Sable du désert ───────────────────────────────────────────────────────
+  function sable() {
+    const toile = $('sable');
+    if (!toile.getContext || mouvementReduit.matches) return;
+    const ctx = toile.getContext('2d');
+    let largeur = 0;
+    let hauteur = 0;
+    let ratio = 1;
+    let grains = [];
+    let raf = 0;
+    const nouveau = (partout) => ({
+      x: Math.random() * largeur,
+      y: partout ? Math.random() * hauteur : hauteur + 8 * ratio,
+      r: (Math.random() * 1.3 + 0.35) * ratio,
+      vx: (Math.random() * 0.38 + 0.1) * ratio,
+      vy: -(Math.random() * 0.2 + 0.04) * ratio,
+      a: Math.random() * 0.45 + 0.12,
+      p: Math.random() * Math.PI * 2,
+    });
+    function dimensionner() {
+      ratio = Math.min(window.devicePixelRatio || 1, 2);
+      largeur = toile.width = Math.round(window.innerWidth * ratio);
+      hauteur = toile.height = Math.round(window.innerHeight * ratio);
+      const n = Math.round(Math.min(90, (window.innerWidth * window.innerHeight) / 15000));
+      grains = Array.from({ length: n }, () => nouveau(true));
+    }
+    function dessiner() {
+      ctx.clearRect(0, 0, largeur, hauteur);
+      const calme = document.body.classList.contains('en-examen') ? 0.45 : 1;
+      for (const g of grains) {
+        g.x += g.vx;
+        g.y += g.vy;
+        g.p += 0.02;
+        if (g.x > largeur + 10 || g.y < -10) {
+          const n = nouveau(false);
+          if (Math.random() < 0.5) {
+            n.x = -8 * ratio;
+            n.y = Math.random() * hauteur;
+          }
+          Object.assign(g, n);
+        }
+        ctx.globalAlpha = g.a * (0.65 + 0.35 * Math.sin(g.p)) * calme;
+        ctx.fillStyle = '#dcbb7c';
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(dessiner);
+    }
+    dimensionner();
+    dessiner();
+    window.addEventListener('resize', dimensionner);
+    document.addEventListener('visibilitychange', () => {
+      cancelAnimationFrame(raf);
+      if (!document.hidden) raf = requestAnimationFrame(dessiner);
+    });
+  }
+
+  // ── Démarrage ─────────────────────────────────────────────────────────────
+  mesurerTete();
+  sable();
+  if (client) {
+    appel('infos_examen').then((infos) => {
+      if (infos) {
+        etat.infos = infos;
+        majInfos();
+      }
+    }).catch(() => {});
+  } else {
+    const bandeau = $('bandeau');
+    bandeau.textContent = problemeConfig();
+    bandeau.hidden = false;
+  }
+})();
+</script>
+</body>
+</html>
