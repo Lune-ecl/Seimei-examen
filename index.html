@@ -233,6 +233,11 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 @keyframes tampon { from { opacity: 0; transform: scale(2.4) rotate(-26deg); filter: blur(4px); } 60% { opacity: 1; transform: scale(.94) rotate(-6deg); filter: blur(0); } }
 @keyframes onde { from { opacity: .9; transform: scale(.85); } to { opacity: 0; transform: scale(1.5); } }
 .fin h2 { font: 800 clamp(2rem, 5vw, 2.8rem)/1.15 var(--font-titre); }
+.elimine h2 { color: #ffb6a8; }
+.elimine .surtitre { color: #ff9c88; }
+.elimine .surtitre::before { background: linear-gradient(90deg, transparent, #ff9c88); }
+.q-verif { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; border-radius: inherit; background: rgba(6, 13, 12, .88); text-align: center; font-weight: 700; }
+.q-verif .roue { width: 54px; height: 54px; margin: 0; }
 .fin-message { max-width: 32rem; color: var(--papier-2); }
 .fin-resultat { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 14px; font-weight: 700; }
 .ref { font-size: .86rem; color: var(--brume); }
@@ -575,8 +580,8 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
       <li><strong>QCU</strong><span>une seule bonne réponse</span></li>
     </ul>
     <div class="regles">
-      <article class="regle"><span class="regle-kanji" aria-hidden="true">時</span><h3>Le temps presse</h3><p><span data-info="secondes">20</span> secondes par question. À zéro, la suivante s’affiche : la réponse cochée compte quand même.</p></article>
-      <article class="regle rouge"><span class="regle-kanji" aria-hidden="true">断</span><h3>Questions éliminatoires</h3><p>Elles portent sur les gestes vitaux : hémorragies, fractures, brûlures, arrêt cardiaque. Une seule erreur et l’examen est échoué.</p></article>
+      <article class="regle"><span class="regle-kanji" aria-hidden="true">時</span><h3>Le temps presse</h3><p><span data-info="secondes">20</span> secondes par question, <span data-info="secondesElim">25</span> pour les éliminatoires. À zéro, la suivante s’affiche : la réponse cochée compte quand même.</p></article>
+      <article class="regle rouge"><span class="regle-kanji" aria-hidden="true">断</span><h3>Questions éliminatoires</h3><p>Les <span data-info="nbElim">2</span> premières questions portent sur les gestes vitaux. Une seule erreur et l’examen s’arrête net.</p></article>
       <article class="regle"><span class="regle-kanji" aria-hidden="true">集</span><h3>Aucun retour en arrière</h3><p>Une réponse validée est définitive. Chaque sortie de la page est signalée à la gérance.</p></article>
     </div>
   </section>
@@ -627,6 +632,11 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
           <p class="aide"><kbd>A</kbd> à <kbd>D</kbd> pour choisir · <kbd>Entrée</kbd> pour valider</p>
           <button type="button" class="btn btn-chakra" id="btn-valider" disabled>Valider <span class="fleche" aria-hidden="true">→</span></button>
         </div>
+        <div class="q-verif" id="q-verif" role="status" hidden>
+          <div class="roue" id="q-verif-roue" aria-hidden="true"></div>
+          <p id="q-verif-texte">Vérification de la réponse…</p>
+          <button type="button" class="btn btn-chakra petit" id="btn-reverifier" hidden>Réessayer</button>
+        </div>
       </article>
     </div>
   </section>
@@ -652,6 +662,18 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
       <div class="fin-resultat" id="fin-resultat" hidden></div>
       <p class="ref">Référence du passage <code id="fin-ref"></code></p>
       <button type="button" class="btn btn-sobre" id="btn-accueil">Retour à l’accueil</button>
+    </div>
+  </section>
+
+  <!-- Éliminé : mauvaise réponse à une question éliminatoire -->
+  <section id="vue-elimine" class="vue" hidden>
+    <div class="carte coins fin elimine">
+      <div class="tampon" aria-hidden="true">断</div>
+      <p class="surtitre">Question éliminatoire</p>
+      <h2>Navré, éliminé</h2>
+      <p class="fin-message">Mauvaise réponse à une question éliminatoire : l’examen s’arrête ici. Votre passage a été transmis à la gérance de la Seimei.</p>
+      <p class="ref">Référence du passage <code id="elim-ref"></code></p>
+      <button type="button" class="btn btn-sobre" id="btn-accueil-elim">Retour à l’accueil</button>
     </div>
   </section>
 
@@ -798,7 +820,7 @@ const CONFIG = {
   'use strict';
 
   const $ = (id) => document.getElementById(id);
-  const VUES = ['vue-accueil', 'vue-identite', 'vue-question', 'vue-envoi', 'vue-fin', 'vue-gerance'];
+  const VUES = ['vue-accueil', 'vue-identite', 'vue-question', 'vue-envoi', 'vue-fin', 'vue-elimine', 'vue-gerance'];
   const LETTRES = ['A', 'B', 'C', 'D', 'E', 'F'];
   const FILTRE_DE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'En cours': 'encours', 'Interrompu': 'encours' };
   const TEINTE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'En cours': 'encours', 'Interrompu': 'interrompu' };
@@ -810,7 +832,7 @@ const CONFIG = {
   const mouvementReduit = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const etat = {
-    infos: { titre: 'Examen de passage d’observateur à infirmier', nbElim: 2, nbQuestions: 15, secondes: 20 },
+    infos: { titre: 'Examen de passage d’observateur à infirmier', nbElim: 2, nbQuestions: 15, secondes: 20, bonusElim: 5 },
     vueExamen: 'vue-accueil',
     candidat: null,
     passage: null,
@@ -950,11 +972,16 @@ const CONFIG = {
   });
 
   // ── Accueil et identité ───────────────────────────────────────────────────
+  // Secondes de plus pour les questions éliminatoires (5 tant que la base ne dit rien d’autre).
+  const bonusElim = (d) => (d && typeof d.bonusElim === 'number' ? d.bonusElim : 5);
+
   function majInfos() {
     const i = etat.infos;
     document.querySelectorAll('[data-info]').forEach((el) => {
       const cle = el.dataset.info;
-      el.textContent = cle === 'total' ? i.nbElim + i.nbQuestions : i[cle];
+      el.textContent = cle === 'total' ? i.nbElim + i.nbQuestions
+        : cle === 'secondesElim' ? i.secondes + bonusElim(i)
+        : i[cle];
     });
   }
 
@@ -1029,6 +1056,7 @@ const CONFIG = {
 
   function afficherQuestion() {
     const q = etat.passage.questions[etat.index];
+    $('q-verif').hidden = true;
     $('q-num').textContent = deux(etat.index + 1);
     $('q-elim').hidden = q.type !== 'elim';
     $('q-theme').textContent = q.theme;
@@ -1070,7 +1098,7 @@ const CONFIG = {
 
   function demarrerChrono() {
     arreterChrono();
-    const total = etat.passage.secondes * 1000;
+    const total = secondesQuestion(etat.index) * 1000;
     etat.debutQuestion = Date.now();
     const echeance = etat.debutQuestion + total;
     const chrono = $('chrono');
@@ -1100,14 +1128,26 @@ const CONFIG = {
     document.body.classList.remove('urgence');
   }
 
+  // Temps de la question : fixé par le serveur (éliminatoires : quelques secondes de plus).
+  function secondesQuestion(index) {
+    const q = etat.passage.questions[index];
+    return (q && q.secondes) || etat.passage.secondes;
+  }
+
   function valider(parTemps) {
     if (!etat.enCours || etat.verrou) return;
     if (!parTemps && etat.choix === null) return;
     etat.verrou = true;
     arreterChrono();
-    const limite = etat.passage.secondes * 1000;
-    etat.reponses[etat.index] = { choix: etat.choix, ms: parTemps ? limite : Math.min(Date.now() - etat.debutQuestion, limite) };
+    const limite = secondesQuestion(etat.index) * 1000;
+    const reponse = { choix: etat.choix, ms: parTemps ? limite : Math.min(Date.now() - etat.debutQuestion, limite) };
+    etat.reponses[etat.index] = reponse;
     etat.tempsEcoule = parTemps;
+    if (etat.passage.questions[etat.index].type === 'elim') verifierEliminatoire(etat.index, reponse);
+    else questionSuivante();
+  }
+
+  function questionSuivante() {
     etat.index += 1;
     if (etat.index < etat.passage.questions.length) {
       afficherQuestion();
@@ -1117,6 +1157,50 @@ const CONFIG = {
       envoyer();
     }
   }
+
+  // Le serveur vérifie tout de suite chaque réponse éliminatoire : une erreur arrête l’examen net.
+  async function verifierEliminatoire(index, reponse) {
+    const voile = $('q-verif');
+    voile.hidden = false;
+    $('q-verif-roue').hidden = false;
+    $('q-verif-texte').textContent = 'Vérification de la réponse…';
+    $('btn-reverifier').hidden = true;
+    try {
+      const res = await appel('repondre_eliminatoire', {
+        p_id: etat.passage.id, p_index: index, p_choix: reponse.choix, p_ms: reponse.ms, p_sorties: etat.sorties,
+      });
+      voile.hidden = true;
+      if (res && res.elimine) eliminer(res);
+      else questionSuivante();
+    } catch (e) {
+      // base pas encore à jour (schema.sql non relancé) : pas de vérification immédiate, l’examen continue
+      if (/pas encore installée/.test(e.message)) {
+        voile.hidden = true;
+        questionSuivante();
+        return;
+      }
+      $('q-verif-roue').hidden = true;
+      $('q-verif-texte').textContent = e.message;
+      $('btn-reverifier').hidden = false;
+      $('btn-reverifier').onclick = () => verifierEliminatoire(index, reponse);
+    }
+  }
+
+  function eliminer(res) {
+    etat.enCours = false;
+    arreterChrono();
+    document.body.classList.remove('en-examen');
+    $('en-cours').hidden = true;
+    mesurerTete();
+    $('elim-ref').textContent = res.id || etat.passage.id;
+    afficher('vue-elimine');
+  }
+
+  $('btn-accueil-elim').addEventListener('click', () => {
+    $('form-identite').reset();
+    etat.passage = null;
+    afficher('vue-accueil');
+  });
 
   $('btn-valider').addEventListener('click', () => valider(false));
 
@@ -1357,14 +1441,24 @@ const CONFIG = {
     const g = etat.gerance;
     const d = g.donnees;
     const boite = $('g-histo');
-    const termines = g.passages.filter((p) => p.statut === 'Terminé' && p.score != null);
-    if (!termines.length) {
+    const finis = g.passages.filter((p) => p.statut === 'Terminé' && p.score != null);
+    // les examens arrêtés net aux éliminatoires n’ont pas de score sur les questions normales
+    const termines = finis.filter((p) => !p.arrete);
+    const arretes = finis.length - termines.length;
+    const noteArretes = arretes
+      ? h('p', { class: 'note' }, arretes + ' examen' + (arretes > 1 ? 's' : '') + ' arrêté' + (arretes > 1 ? 's' : '') + ' aux éliminatoires, non compté' + (arretes > 1 ? 's' : '') + ' dans ce graphique.')
+      : null;
+    if (!finis.length) {
       $('g-taux').replaceChildren();
       boite.replaceChildren(h('p', { class: 'vide-graphe' }, 'Le graphique apparaîtra après le premier examen terminé.'));
       return;
     }
-    const reussis = termines.filter((p) => p.resultat === 'Réussi').length;
-    $('g-taux').replaceChildren(Math.round((100 * reussis) / termines.length) + ' %', h('small', null, 'de réussite'));
+    const reussis = finis.filter((p) => p.resultat === 'Réussi').length;
+    $('g-taux').replaceChildren(Math.round((100 * reussis) / finis.length) + ' %', h('small', null, 'de réussite'));
+    if (!termines.length) {
+      boite.replaceChildren(h('p', { class: 'vide-graphe' }, 'Aucun examen complet pour l’instant.'), noteArretes);
+      return;
+    }
 
     const n = d.nbQuestions;
     const compte = Array.from({ length: n + 1 }, () => 0);
@@ -1395,6 +1489,7 @@ const CONFIG = {
       if (s % 5 === 0 || s === n) graphe.append(svg('text', { x: (x + larg / 2).toFixed(1), y: H - 8 }, s));
     });
     boite.replaceChildren(graphe);
+    if (noteArretes) boite.append(noteArretes);
   }
 
   function rendreRatees() {
@@ -1459,7 +1554,9 @@ const CONFIG = {
     },
       h('span', { class: 'p-avatar', 'aria-hidden': 'true' }, initiales(p)),
       h('span', { class: 'p-qui' }, h('strong', null, p.prenom + ' ' + p.nom), h('small', null, sous)),
-      h('span', { class: 'p-score' }, termine ? [String(p.score), h('small', null, ' /' + d.nbQuestions)] : h('small', null, '—')),
+      h('span', { class: 'p-score' }, termine && !p.arrete
+        ? [String(p.score), h('small', null, ' /' + d.nbQuestions)]
+        : h('small', null, p.arrete ? 'arrêté' : '—')),
       h('span', { class: 'p-elim', title: termine ? 'Éliminatoires : ' + p.elim + '/' + elims.length : null },
         elims.map((r) => h('i', { class: r.correct ? null : 'ko' })),
         termine ? h('span', { class: 'sr' }, 'Éliminatoires : ' + p.elim + ' sur ' + elims.length) : ''),
@@ -1486,10 +1583,14 @@ const CONFIG = {
         meta('Début', dateLongue(p.debut)),
         meta('Fin', dateLongue(p.fin)),
         meta('Durée', termine ? duree(p.duree) : '—'),
-        meta('Temps par question', p.secondes ? p.secondes + ' s' : '—'),
+        meta('Temps par question', p.secondes ? p.secondes + ' s (éliminatoires : ' + (p.secondes + bonusElim(g.donnees)) + ' s)' : '—'),
         meta('Sorties de page', String(p.sorties))));
 
     if (p.alertes) detail.append(h('p', { class: 'alerte' }, h('span', { 'aria-hidden': 'true' }, '⚠'), h('span', null, p.alertes)));
+    if (p.arrete) {
+      detail.append(h('p', { class: 'alerte' }, h('span', { 'aria-hidden': 'true' }, '断'),
+        h('span', null, 'Examen arrêté net : mauvaise réponse à la question éliminatoire n°' + p.detail.length + '. Les questions suivantes n’ont pas été posées.')));
+    }
 
     if (!termine) {
       detail.append(h('p', { class: 'note' }, p.affiche === 'Interrompu'
@@ -1503,8 +1604,10 @@ const CONFIG = {
         t.n += 1;
         if (r.correct) t.ok += 1;
       });
-      detail.append(h('div', { class: 'themes' }, h('span', { class: 'themes-lib' }, 'Par thème'),
-        Object.keys(themes).map((t) => h('span', { class: 'theme-chip' + (themes[t].ok < themes[t].n ? ' faible' : '') }, t + ' ', h('b', null, themes[t].ok + '/' + themes[t].n)))));
+      if (Object.keys(themes).length) {
+        detail.append(h('div', { class: 'themes' }, h('span', { class: 'themes-lib' }, 'Par thème'),
+          Object.keys(themes).map((t) => h('span', { class: 'theme-chip' + (themes[t].ok < themes[t].n ? ' faible' : '') }, t + ' ', h('b', null, themes[t].ok + '/' + themes[t].n)))));
+      }
       detail.append(h('ol', { class: 'reponses' }, p.detail.map(ligneReponse)));
     }
 
@@ -1802,8 +1905,9 @@ const CONFIG = {
     curseur.style.setProperty('--pct', (((v - 5) / 40) * 100).toFixed(1) + '%');
     $('temps-valeur').textContent = v;
     const d = g.donnees || etat.infos;
-    const nb = d.nbElim + d.nbQuestions;
-    $('temps-total').textContent = 'Durée maximale d’un examen : ' + nb + ' questions × ' + v + ' s = ' + duree(nb * v) + '.';
+    const bonus = bonusElim(d);
+    $('temps-total').textContent = 'Les ' + d.nbElim + ' questions éliminatoires, posées en premier, ont ' + bonus + ' s de plus : ' + (v + bonus) + ' s. '
+      + 'Durée maximale d’un examen : ' + duree(d.nbElim * (v + bonus) + d.nbQuestions * v) + '.';
     const modifie = v !== g.secondesEnregistrees;
     $('temps-enregistrer').disabled = !modifie;
     $('temps-annuler').disabled = !modifie;

@@ -18,7 +18,8 @@ create table if not exists public.reglages (
   secondes_par_question int  not null default 20 check (secondes_par_question between 5 and 45),
   seuil_reussite        int  not null default 12,       -- bonnes réponses minimum sur nb_questions
   afficher_resultat     boolean not null default false, -- true : le candidat voit son résultat à la fin
-  code_gerance_hash     text                            -- empreinte du code, jamais le code lui-même
+  code_gerance_hash     text,                           -- empreinte du code, jamais le code lui-même
+  bonus_eliminatoire    int  not null default 5         -- secondes de plus pour les questions éliminatoires
 );
 insert into public.reglages (id) values (1) on conflict (id) do nothing;
 
@@ -27,6 +28,11 @@ update public.reglages set secondes_par_question = 45 where secondes_par_questio
 alter table public.reglages alter column secondes_par_question set default 20;
 alter table public.reglages drop constraint if exists reglages_secondes_par_question_check;
 alter table public.reglages add constraint reglages_secondes_par_question_check check (secondes_par_question between 5 and 45);
+
+-- Les questions éliminatoires, posées en premier, laissent quelques secondes de plus
+alter table public.reglages add column if not exists bonus_eliminatoire int not null default 5;
+alter table public.reglages drop constraint if exists reglages_bonus_eliminatoire_check;
+alter table public.reglages add constraint reglages_bonus_eliminatoire_check check (bonus_eliminatoire between 0 and 30);
 
 -- Banque de questions (remplie par prive/questions.sql)
 create table if not exists public.questions (
@@ -56,10 +62,14 @@ create table if not exists public.passages (
   sorties   int  not null default 0,          -- sorties de la page pendant l'examen
   alertes   text not null default '',
   detail    jsonb,                            -- question, réponse donnée, bonne réponse, temps
-  secondes  int                               -- temps par question en vigueur au démarrage
+  secondes  int,                              -- temps par question en vigueur au démarrage
+  reponses_elim jsonb not null default '{}',  -- réponses aux éliminatoires déjà vérifiées (définitives)
+  arret_elim    boolean not null default false -- examen arrêté net sur une mauvaise réponse éliminatoire
 );
 create index if not exists passages_par_debut on public.passages (debut desc);
 alter table public.passages add column if not exists secondes int;
+alter table public.passages add column if not exists reponses_elim jsonb not null default '{}';
+alter table public.passages add column if not exists arret_elim boolean not null default false;
 
 -- Essais ratés du code de la gérance (freine les essais à répétition)
 create table if not exists public.essais_code (
@@ -170,24 +180,27 @@ create or replace function public.infos_examen()
 returns jsonb language sql stable security definer set search_path = ''
 as $$
   select jsonb_build_object('titre', titre, 'nbElim', nb_eliminatoires,
-                            'nbQuestions', nb_questions, 'secondes', secondes_par_question)
+                            'nbQuestions', nb_questions, 'secondes', secondes_par_question,
+                            'bonusElim', bonus_eliminatoire)
   from public.reglages where id = 1;
 $$;
 
 -- Tire les questions, ouvre le passage et renvoie l'examen SANS les bonnes réponses.
+-- Les éliminatoires viennent en premier et laissent bonus_eliminatoire secondes de plus.
 create or replace function public.demarrer_examen(p_nom text, p_prenom text)
 returns jsonb language plpgsql volatile security definer set search_path = ''
 as $$
 declare
-  r         public.reglages;
-  q         public.questions;
-  v_nom     text := public.seimei_nettoyer(p_nom);
-  v_prenom  text := public.seimei_nettoyer(p_prenom);
-  v_id      text;
-  v_choix   text[];
-  v_ordre   int[];
-  v_tirage  jsonb := '[]';
-  v_liste   jsonb := '[]';
+  r          public.reglages;
+  q          public.questions;
+  v_nom      text := public.seimei_nettoyer(p_nom);
+  v_prenom   text := public.seimei_nettoyer(p_prenom);
+  v_id       text;
+  v_choix    text[];
+  v_ordre    int[];
+  v_secondes int;
+  v_tirage   jsonb := '[]';
+  v_liste    jsonb := '[]';
 begin
   if v_nom = '' or v_prenom = '' then
     raise exception 'Indiquez votre nom et votre prénom.';
@@ -203,15 +216,16 @@ begin
       union all
       (select * from public.questions where type = 'std' and actif order by random() limit r.nb_questions)
     ) t
-    order by random()
+    order by (t.type = 'std'), random()              -- éliminatoires d'abord
   loop
     v_choix := array[q.bonne] || q.fausses;          -- position 1 = bonne réponse
     select array_agg(i order by case when q.tri_num then public.seimei_premier_nombre(v_choix[i]) end, random())
       into v_ordre
       from generate_subscripts(v_choix, 1) as i;
-    v_tirage := v_tirage || jsonb_build_object('id', q.id, 'type', q.type, 'ordre', to_jsonb(v_ordre));
+    v_secondes := r.secondes_par_question + case when q.type = 'elim' then r.bonus_eliminatoire else 0 end;
+    v_tirage := v_tirage || jsonb_build_object('id', q.id, 'type', q.type, 'ordre', to_jsonb(v_ordre), 'secondes', v_secondes);
     v_liste := v_liste || jsonb_build_object(
-      'type', q.type, 'theme', q.theme, 'texte', q.texte,
+      'type', q.type, 'theme', q.theme, 'texte', q.texte, 'secondes', v_secondes,
       'options', (select jsonb_agg(v_choix[o.i] order by o.n) from unnest(v_ordre) with ordinality as o(i, n)));
   end loop;
 
@@ -225,9 +239,11 @@ begin
   return jsonb_build_object('id', v_id, 'secondes', r.secondes_par_question, 'questions', v_liste);
 end $$;
 
--- Corrige et enregistre le passage. p_reponses[i] = {"choix": index affiché ou null, "ms": temps}.
--- Un second envoi du même passage renvoie le premier résultat sans rien changer.
-create or replace function public.terminer_examen(p_id text, p_reponses jsonb, p_sorties int)
+-- Corrige le passage jusqu'à la question p_dernier (null = toutes, numérotées à partir de 0) et le
+-- termine. Les réponses aux éliminatoires déjà vérifiées par le serveur (reponses_elim) priment
+-- sur celles envoyées par le navigateur. Appelée par terminer_examen et repondre_eliminatoire,
+-- qui ont déjà verrouillé la ligne du passage.
+create or replace function public.seimei_corriger(p_id text, p_reponses jsonb, p_sorties int, p_dernier int)
 returns jsonb language plpgsql volatile security definer set search_path = ''
 as $$
 declare
@@ -243,6 +259,7 @@ declare
   v_ok       boolean;
   v_type     text;
   v_limite   int;
+  v_total    int := 0;
   v_score    int := 0;
   v_elim     int := 0;
   v_nb_elim  int := 0;
@@ -253,19 +270,16 @@ declare
   v_detail   jsonb := '[]';
   v_resultat text;
 begin
-  select * into p from public.passages where id = p_id for update;
-  if not found then
-    raise exception 'Passage introuvable. Recommencez l’examen depuis l’accueil.';
-  end if;
-  if p.statut = 'Terminé' then
-    return public.seimei_reponse_candidat(p.id, p.resultat, p.score, p.elim);
-  end if;
+  select * into p from public.passages where id = p_id;
   select * into r from public.reglages where id = 1;
-  -- le temps en vigueur quand le candidat a commencé (le réglage a pu changer depuis)
-  v_limite := coalesce(p.secondes, r.secondes_par_question) * 1000;
 
   for t in select e.item, e.n from jsonb_array_elements(p.tirage) with ordinality as e(item, n) loop
+    exit when p_dernier is not null and t.n - 1 > p_dernier;
     v_type := t.item ->> 'type';
+    -- temps de cette question : fixé au tirage (anciens passages : temps du passage, + bonus si éliminatoire)
+    v_limite := 1000 * coalesce((t.item ->> 'secondes')::int,
+      coalesce(p.secondes, r.secondes_par_question) + case when v_type = 'elim' then r.bonus_eliminatoire else 0 end);
+    v_total := v_total + v_limite / 1000;
     if v_type = 'elim' then
       v_nb_elim := v_nb_elim + 1;
     end if;
@@ -278,7 +292,7 @@ begin
     end if;
 
     v_choix := array[q.bonne] || q.fausses;
-    v_rep := coalesce(p_reponses -> (t.n::int - 1), '{}');
+    v_rep := coalesce(p.reponses_elim -> ((t.n - 1)::text), p_reponses -> (t.n::int - 1), '{}');
     v_c := case when jsonb_typeof(v_rep -> 'choix') = 'number' then floor((v_rep ->> 'choix')::numeric)::int end;
     v_k := case when v_c between 0 and jsonb_array_length(t.item -> 'ordre') - 1
                 then (t.item -> 'ordre' ->> v_c)::int end;
@@ -301,7 +315,7 @@ begin
   end loop;
 
   v_duree := round(extract(epoch from now() - p.debut))::int;
-  v_max := jsonb_array_length(p.tirage) * (v_limite / 1000) + 60;
+  v_max := v_total + 60;
   if v_duree > v_max then
     v_alertes := v_alertes || format('Envoi tardif : %s s entre le début et l’envoi (%s s au maximum attendus)', v_duree, v_max);
   end if;
@@ -315,10 +329,69 @@ begin
   update public.passages set
     fin = now(), statut = 'Terminé', score = v_score, elim = v_elim, resultat = v_resultat,
     duree = v_duree, sorties = greatest(0, least(coalesce(p_sorties, 0), 999)),
-    alertes = array_to_string(v_alertes, ' · '), detail = v_detail
+    alertes = array_to_string(v_alertes, ' · '), detail = v_detail,
+    arret_elim = p_dernier is not null and p_dernier < jsonb_array_length(p.tirage) - 1
   where id = p.id;
 
   return public.seimei_reponse_candidat(p.id, v_resultat, v_score, v_elim);
+end $$;
+
+-- Fin de l'examen. p_reponses[i] = {"choix": index affiché ou null, "ms": temps}.
+-- Un second envoi du même passage renvoie le premier résultat sans rien changer.
+create or replace function public.terminer_examen(p_id text, p_reponses jsonb, p_sorties int)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $$
+declare
+  p public.passages;
+begin
+  select * into p from public.passages where id = p_id for update;
+  if not found then
+    raise exception 'Passage introuvable. Recommencez l’examen depuis l’accueil.';
+  end if;
+  if p.statut = 'Terminé' then
+    return public.seimei_reponse_candidat(p.id, p.resultat, p.score, p.elim);
+  end if;
+  return public.seimei_corriger(p_id, coalesce(p_reponses, '[]'), p_sorties, null);
+end $$;
+
+-- Réponse à une question éliminatoire, vérifiée tout de suite. La première réponse envoyée est
+-- définitive. Bonne : {"correct": true}. Mauvaise ou temps écoulé : l'examen s'arrête net et
+-- est enregistré « Éliminé » ({"elimine": true, "id": …}).
+create or replace function public.repondre_eliminatoire(p_id text, p_index int, p_choix int, p_ms int, p_sorties int)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $$
+declare
+  p     public.passages;
+  t     jsonb;
+  v_rep jsonb;
+  v_c   int;
+  v_k   int;
+begin
+  select * into p from public.passages where id = p_id for update;
+  if not found then
+    raise exception 'Passage introuvable. Recommencez l’examen depuis l’accueil.';
+  end if;
+  if p.statut = 'Terminé' then
+    return public.seimei_reponse_candidat(p.id, p.resultat, p.score, p.elim)
+      || jsonb_build_object('elimine', p.resultat = 'Éliminé');
+  end if;
+  t := case when p_index >= 0 then p.tirage -> p_index end;
+  if t is null or t ->> 'type' <> 'elim' then
+    raise exception 'Cette question n’est pas éliminatoire.';
+  end if;
+
+  v_rep := p.reponses_elim -> (p_index::text);
+  if v_rep is null then
+    v_rep := jsonb_build_object('choix', p_choix, 'ms', greatest(0, coalesce(p_ms, 0)));
+    update public.passages set reponses_elim = reponses_elim || jsonb_build_object(p_index::text, v_rep)
+      where id = p_id;
+  end if;
+  v_c := case when jsonb_typeof(v_rep -> 'choix') = 'number' then (v_rep ->> 'choix')::int end;
+  v_k := case when v_c between 0 and jsonb_array_length(t -> 'ordre') - 1 then (t -> 'ordre' ->> v_c)::int end;
+  if coalesce(v_k = 1, false) then
+    return jsonb_build_object('correct', true);
+  end if;
+  return public.seimei_corriger(p_id, '[]', p_sorties, p_index) || jsonb_build_object('elimine', true);
 end $$;
 
 -- Tous les passages, du plus récent au plus ancien (onglet Gérance).
@@ -335,14 +408,15 @@ begin
   select * into r from public.reglages where id = 1;
   return jsonb_build_object(
     'seuil', r.seuil_reussite, 'nbQuestions', r.nb_questions, 'nbElim', r.nb_eliminatoires,
-    'secondes', r.secondes_par_question,
+    'secondes', r.secondes_par_question, 'bonusElim', r.bonus_eliminatoire,
     'passages', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', p.id, 'nom', p.nom, 'prenom', p.prenom, 'statut', p.statut,
         'debut', floor(extract(epoch from p.debut) * 1000),
         'fin', floor(extract(epoch from p.fin) * 1000),
         'score', p.score, 'elim', p.elim, 'resultat', p.resultat, 'duree', p.duree,
-        'sorties', p.sorties, 'alertes', p.alertes, 'secondes', p.secondes, 'detail', coalesce(p.detail, '[]'))
+        'sorties', p.sorties, 'alertes', p.alertes, 'secondes', p.secondes, 'arrete', p.arret_elim,
+        'detail', coalesce(p.detail, '[]'))
         order by p.debut desc)
       from public.passages p), '[]'));
 end $$;
@@ -491,11 +565,12 @@ end $$;
 revoke execute on function
   public.seimei_nettoyer(text), public.seimei_premier_nombre(text), public.seimei_empreinte(text),
   public.seimei_controle_code(text), public.seimei_reponse_candidat(text, text, int, int),
-  public.definir_code_gerance(text)
+  public.seimei_corriger(text, jsonb, int, int), public.definir_code_gerance(text)
   from public, anon, authenticated;
 
 grant execute on function
   public.infos_examen(), public.demarrer_examen(text, text), public.terminer_examen(text, jsonb, int),
+  public.repondre_eliminatoire(text, int, int, int, int),
   public.lire_resultats(text), public.supprimer_passage(text, text),
   public.lire_questions(text), public.enregistrer_question(text, jsonb), public.supprimer_question(text, text),
   public.modifier_reglages(text, jsonb)
