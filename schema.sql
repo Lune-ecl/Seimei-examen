@@ -64,12 +64,23 @@ create table if not exists public.passages (
   detail    jsonb,                            -- question, réponse donnée, bonne réponse, temps
   secondes  int,                              -- temps par question en vigueur au démarrage
   reponses_elim jsonb not null default '{}',  -- réponses aux éliminatoires déjà vérifiées (définitives)
-  arret_elim    boolean not null default false -- examen arrêté net sur une mauvaise réponse éliminatoire
+  arret_elim    boolean not null default false, -- examen arrêté net sur une mauvaise réponse éliminatoire
+  sorties_detail   jsonb not null default '[]',  -- [{"q": question (0 = la 1re, -1 = compte à rebours), "ms": temps hors de la page}]
+  resultat_gerance text,                         -- décision de la gérance : remplace le résultat calculé à l'affichage
+  note_gerance     text not null default '',
+  decide_le        timestamptz
 );
 create index if not exists passages_par_debut on public.passages (debut desc);
 alter table public.passages add column if not exists secondes int;
 alter table public.passages add column if not exists reponses_elim jsonb not null default '{}';
 alter table public.passages add column if not exists arret_elim boolean not null default false;
+alter table public.passages add column if not exists sorties_detail jsonb not null default '[]';
+alter table public.passages add column if not exists resultat_gerance text;
+alter table public.passages add column if not exists note_gerance text not null default '';
+alter table public.passages add column if not exists decide_le timestamptz;
+alter table public.passages drop constraint if exists passages_resultat_gerance_check;
+alter table public.passages add constraint passages_resultat_gerance_check
+  check (resultat_gerance in ('Réussi', 'Échoué', 'Éliminé', 'Triche'));
 
 -- Essais ratés du code de la gérance (freine les essais à répétition)
 create table if not exists public.essais_code (
@@ -146,6 +157,24 @@ begin
   perform pg_sleep(1);
   return 'Code d’accès incorrect.';
 end $$;
+
+-- Nettoie la liste des sorties de page envoyée par le navigateur : 100 au plus,
+-- question entre -1 (compte à rebours) et la dernière, temps entre 0 et 1 h (ou inconnu).
+create or replace function public.seimei_sorties(p jsonb, p_nb int)
+returns jsonb language sql immutable set search_path = ''
+as $$
+  select coalesce(jsonb_agg(jsonb_build_object('q', s.q, 'ms', s.ms) order by s.n), '[]')
+  from (
+    select x.n,
+      case when jsonb_typeof(x.e -> 'q') = 'number'
+           then least(greatest((x.e ->> 'q')::numeric, -1), p_nb - 1)::int end as q,
+      case when jsonb_typeof(x.e -> 'ms') = 'number'
+           then least(greatest((x.e ->> 'ms')::numeric, 0), 3600000)::int end as ms
+    from jsonb_array_elements(case when jsonb_typeof(p) = 'array' then p else '[]'::jsonb end) with ordinality as x(e, n)
+    where x.n <= 100
+  ) s
+  where s.q is not null;
+$$;
 
 create or replace function public.seimei_reponse_candidat(p_id text, p_resultat text, p_score int, p_elim int)
 returns jsonb language sql stable security definer set search_path = ''
@@ -242,8 +271,9 @@ end $$;
 -- Corrige le passage jusqu'à la question p_dernier (null = toutes, numérotées à partir de 0) et le
 -- termine. Les réponses aux éliminatoires déjà vérifiées par le serveur (reponses_elim) priment
 -- sur celles envoyées par le navigateur. Appelée par terminer_examen et repondre_eliminatoire,
--- qui ont déjà verrouillé la ligne du passage.
-create or replace function public.seimei_corriger(p_id text, p_reponses jsonb, p_sorties int, p_dernier int)
+-- qui ont déjà verrouillé la ligne du passage. p_sorties_detail : où le candidat a quitté la page.
+drop function if exists public.seimei_corriger(text, jsonb, int, int);
+create or replace function public.seimei_corriger(p_id text, p_reponses jsonb, p_sorties int, p_dernier int, p_sorties_detail jsonb)
 returns jsonb language plpgsql volatile security definer set search_path = ''
 as $$
 declare
@@ -269,6 +299,7 @@ declare
   v_alertes  text[] := '{}';
   v_detail   jsonb := '[]';
   v_resultat text;
+  v_sorties  jsonb;
 begin
   select * into p from public.passages where id = p_id;
   select * into r from public.reglages where id = 1;
@@ -326,9 +357,11 @@ begin
                      when v_score >= r.seuil_reussite then 'Réussi'
                      else 'Échoué' end;
 
+  v_sorties := public.seimei_sorties(p_sorties_detail, jsonb_array_length(p.tirage));
   update public.passages set
     fin = now(), statut = 'Terminé', score = v_score, elim = v_elim, resultat = v_resultat,
-    duree = v_duree, sorties = greatest(0, least(coalesce(p_sorties, 0), 999)),
+    duree = v_duree, sorties = greatest(0, least(greatest(coalesce(p_sorties, 0), jsonb_array_length(v_sorties)), 999)),
+    sorties_detail = v_sorties,
     alertes = array_to_string(v_alertes, ' · '), detail = v_detail,
     arret_elim = p_dernier is not null and p_dernier < jsonb_array_length(p.tirage) - 1
   where id = p.id;
@@ -338,7 +371,9 @@ end $$;
 
 -- Fin de l'examen. p_reponses[i] = {"choix": index affiché ou null, "ms": temps}.
 -- Un second envoi du même passage renvoie le premier résultat sans rien changer.
-create or replace function public.terminer_examen(p_id text, p_reponses jsonb, p_sorties int)
+-- p_sorties_detail est facultatif : les pages ouvertes avant cette version ne l'envoient pas.
+drop function if exists public.terminer_examen(text, jsonb, int);
+create or replace function public.terminer_examen(p_id text, p_reponses jsonb, p_sorties int, p_sorties_detail jsonb default null)
 returns jsonb language plpgsql volatile security definer set search_path = ''
 as $$
 declare
@@ -351,13 +386,15 @@ begin
   if p.statut = 'Terminé' then
     return public.seimei_reponse_candidat(p.id, p.resultat, p.score, p.elim);
   end if;
-  return public.seimei_corriger(p_id, coalesce(p_reponses, '[]'), p_sorties, null);
+  return public.seimei_corriger(p_id, coalesce(p_reponses, '[]'), p_sorties, null, p_sorties_detail);
 end $$;
 
 -- Réponse à une question éliminatoire, vérifiée tout de suite. La première réponse envoyée est
 -- définitive. Bonne : {"correct": true}. Mauvaise ou temps écoulé : l'examen s'arrête net et
 -- est enregistré « Éliminé » ({"elimine": true, "id": …}).
-create or replace function public.repondre_eliminatoire(p_id text, p_index int, p_choix int, p_ms int, p_sorties int)
+drop function if exists public.repondre_eliminatoire(text, int, int, int, int);
+create or replace function public.repondre_eliminatoire(p_id text, p_index int, p_choix int, p_ms int, p_sorties int,
+                                                        p_sorties_detail jsonb default null)
 returns jsonb language plpgsql volatile security definer set search_path = ''
 as $$
 declare
@@ -391,7 +428,7 @@ begin
   if coalesce(v_k = 1, false) then
     return jsonb_build_object('correct', true);
   end if;
-  return public.seimei_corriger(p_id, '[]', p_sorties, p_index) || jsonb_build_object('elimine', true);
+  return public.seimei_corriger(p_id, '[]', p_sorties, p_index, p_sorties_detail) || jsonb_build_object('elimine', true);
 end $$;
 
 -- Tous les passages, du plus récent au plus ancien (onglet Gérance).
@@ -416,6 +453,8 @@ begin
         'fin', floor(extract(epoch from p.fin) * 1000),
         'score', p.score, 'elim', p.elim, 'resultat', p.resultat, 'duree', p.duree,
         'sorties', p.sorties, 'alertes', p.alertes, 'secondes', p.secondes, 'arrete', p.arret_elim,
+        'sortiesDetail', p.sorties_detail, 'resultatGerance', p.resultat_gerance, 'noteGerance', p.note_gerance,
+        'decideLe', floor(extract(epoch from p.decide_le) * 1000),
         'detail', coalesce(p.detail, '[]'))
         order by p.debut desc)
       from public.passages p), '[]'));
@@ -531,6 +570,31 @@ begin
   return jsonb_build_object('ok', true);
 end $$;
 
+-- Décision de la gérance sur un passage : 'Réussi', 'Échoué', 'Éliminé' ou 'Triche', avec un motif.
+-- p_resultat null : revenir au résultat calculé. Le résultat calculé n'est jamais modifié.
+create or replace function public.modifier_resultat(p_code text, p_id text, p_resultat text, p_note text)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $$
+declare
+  v_erreur text := public.seimei_controle_code(p_code);
+begin
+  if v_erreur is not null then
+    return jsonb_build_object('erreur', v_erreur);
+  end if;
+  if p_resultat is not null and p_resultat not in ('Réussi', 'Échoué', 'Éliminé', 'Triche') then
+    return jsonb_build_object('erreur', 'Choisis Réussi, Échoué, Éliminé ou Triche.');
+  end if;
+  update public.passages set
+    resultat_gerance = p_resultat,
+    note_gerance = case when p_resultat is null then '' else left(btrim(coalesce(p_note, '')), 300) end,
+    decide_le = case when p_resultat is null then null else now() end
+  where id = p_id;
+  if not found then
+    return jsonb_build_object('erreur', 'Ce passage n’existe plus : actualise la liste.');
+  end if;
+  return jsonb_build_object('ok', true, 'resultat', p_resultat);
+end $$;
+
 -- =============================================================
 --  Réglages (onglet Gérance → Réglages)
 -- =============================================================
@@ -565,13 +629,14 @@ end $$;
 revoke execute on function
   public.seimei_nettoyer(text), public.seimei_premier_nombre(text), public.seimei_empreinte(text),
   public.seimei_controle_code(text), public.seimei_reponse_candidat(text, text, int, int),
-  public.seimei_corriger(text, jsonb, int, int), public.definir_code_gerance(text)
+  public.seimei_corriger(text, jsonb, int, int, jsonb), public.seimei_sorties(jsonb, int),
+  public.definir_code_gerance(text)
   from public, anon, authenticated;
 
 grant execute on function
-  public.infos_examen(), public.demarrer_examen(text, text), public.terminer_examen(text, jsonb, int),
-  public.repondre_eliminatoire(text, int, int, int, int),
-  public.lire_resultats(text), public.supprimer_passage(text, text),
+  public.infos_examen(), public.demarrer_examen(text, text), public.terminer_examen(text, jsonb, int, jsonb),
+  public.repondre_eliminatoire(text, int, int, int, int, jsonb),
+  public.lire_resultats(text), public.supprimer_passage(text, text), public.modifier_resultat(text, text, text, text),
   public.lire_questions(text), public.enregistrer_question(text, jsonb), public.supprimer_question(text, text),
   public.modifier_reglages(text, jsonb)
   to anon, authenticated;

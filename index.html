@@ -28,6 +28,7 @@
   --vermillon: #e5553e;
   --ambre: #e9b44c;
   --ciel: #8cc4ff;
+  --triche: #c3a3ff;
   --ok: #55e6b3;
   --ko: #ff7a63;
   --font-titre: "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
@@ -263,7 +264,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 .g-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .maj { font-size: .8rem; color: var(--brume); }
 #g-erreur { margin-bottom: 14px; }
-.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
 .stat { display: grid; gap: 8px; padding: 18px 18px 16px; border: 1px solid var(--ligne); border-radius: 14px; background: rgba(12, 26, 23, .8); text-align: left; transition: border-color .2s, transform .2s, box-shadow .2s; }
 .stat:hover { border-color: var(--ligne-forte); transform: translateY(-2px); }
 .stat[aria-pressed="true"] { border-color: var(--teinte); box-shadow: inset 0 0 0 1px var(--teinte), 0 0 32px -14px var(--teinte); }
@@ -276,6 +277,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 .t-elimine { --teinte: var(--ko); }
 .t-encours { --teinte: var(--ciel); }
 .t-interrompu { --teinte: var(--brume); }
+.t-triche { --teinte: var(--triche); }
 .graphes { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; margin-bottom: 30px; }
 .graphe { padding: 22px 22px 18px; }
 .graphe-tete { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; margin-bottom: 14px; }
@@ -321,6 +323,8 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 .pill.t-echoue { border-color: rgba(233, 180, 76, .4); background: rgba(233, 180, 76, .1); }
 .pill.t-elimine { border-color: rgba(255, 122, 99, .45); background: rgba(255, 122, 99, .1); }
 .pill.t-encours { border-color: rgba(140, 196, 255, .4); background: rgba(140, 196, 255, .1); }
+.pill.t-triche { border-color: rgba(195, 163, 255, .5); background: rgba(195, 163, 255, .12); }
+.pill-decide { margin-left: 6px; opacity: .8; }
 .p-duree { font: 500 .84rem var(--font-mono); color: var(--brume); }
 .p-alerte { font-size: 1.05rem; color: var(--ambre); }
 .chevron { color: var(--brume); transition: transform .2s; }
@@ -353,6 +357,35 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
 .rep-bonne strong { color: var(--ok); }
 .detail-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
 .confirmer { margin-right: auto; font-weight: 700; color: var(--ko); }
+
+/* ── Gérance : liste rangée par résultat, « Triche ? », décision ── */
+.liste.groupee { gap: 28px; }
+.groupe { display: grid; gap: 10px; }
+.groupe-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; width: 100%; padding: 4px 2px; border: 0; background: none; text-align: left; }
+.groupe-tete::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--teinte); box-shadow: 0 0 12px var(--teinte); }
+.groupe-titre { font: 700 1.12rem/1.2 var(--font-titre); }
+.groupe-nb { min-width: 30px; padding: 1px 9px; border: 1px solid color-mix(in srgb, var(--teinte) 50%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--teinte) 12%, transparent); font: 600 .8rem/1.5 var(--font-mono); color: var(--teinte); text-align: center; }
+.groupe-aide { font-size: .82rem; color: var(--brume); }
+.groupe-trait { flex: 1 1 40px; height: 1px; background: linear-gradient(90deg, var(--ligne-forte), transparent); }
+.groupe-tete .chevron { font-size: 1.2rem; line-height: 1; }
+.groupe-tete[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+.groupe-tete:hover .groupe-titre, .groupe-tete:hover .chevron { color: var(--papier); }
+.groupe-corps { display: grid; gap: 10px; }
+.alerte.triche { border-color: rgba(195, 163, 255, .38); background: rgba(195, 163, 255, .09); color: #e6dbff; }
+.alerte.triche strong { color: var(--triche); }
+.decision { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--ligne-forte); border-radius: 12px; background: rgba(12, 26, 23, .72); }
+.decision-tete { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 14px; }
+.decision-tete h4 { margin: 0; font: 700 1.02rem/1.3 var(--font-titre); }
+.decision .segment::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--teinte); box-shadow: 0 0 8px var(--teinte); }
+.decision .segment:hover { color: var(--papier); border-color: var(--ligne-forte); }
+.decision .segment[aria-pressed="true"] { border-color: var(--teinte); background: color-mix(in srgb, var(--teinte) 13%, rgba(12, 26, 23, .8)); color: var(--papier); box-shadow: 0 0 26px -12px var(--teinte); }
+.decision-ligne { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.decision-motif { flex: 1 1 260px; }
+.decision-statut { font-size: .88rem; font-weight: 700; color: var(--ok); }
+.decision-statut:empty { display: none; }
+.decision-statut.ko { color: var(--ko); }
+.rep-sortie { padding: 2px 9px; border: 1px solid rgba(233, 180, 76, .45); border-radius: 999px; background: rgba(233, 180, 76, .1); color: #f4d9a0; font-size: .7rem; font-weight: 700; }
+.rep.rep-quittee { box-shadow: inset 3px 0 0 var(--ambre); }
 
 /* ── Gérance : onglets, réponses détaillées, banque de questions ── */
 .g-onglets { display: flex; flex-wrap: wrap; gap: 6px; width: fit-content; max-width: 100%; margin: -4px 0 24px; padding: 5px; border: 1px solid var(--ligne); border-radius: 14px; background: rgba(11, 23, 21, .78); }
@@ -456,8 +489,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
   .hero { grid-template-columns: 1fr; }
   .embleme { order: -1; width: min(64vw, 300px); margin-bottom: -6px; }
   .regles, .graphes { grid-template-columns: 1fr; }
-  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .stat.t-tous { grid-column: 1 / -1; }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .p-ligne { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
   .p-avatar { order: 0; }
   .p-qui { order: 1; flex: 1 1 0; }
@@ -466,7 +498,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
   .saut { display: block; order: 4; flex-basis: 100%; height: 0; }
   .p-score, .p-elim, .p-duree { order: 5; }
   .saut + .p-score { margin-left: 58px; }
-  .chevron { display: none; }
+  .p-ligne .chevron { display: none; }
   .banque { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
@@ -487,6 +519,9 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
   .q-pied { justify-content: flex-end; }
   .lune { top: 14vh; right: 6vw; width: 54px; height: 54px; }
   .ed-type, .ed-grille { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .groupe-aide { order: 1; flex-basis: 100%; padding-left: 20px; }
+  .decision-ligne .btn { flex: 1 1 auto; }
   .rep-option { grid-template-columns: 28px minmax(0, 1fr); }
   .rep-tag { grid-column: 2; }
   .qc-stat { flex-basis: 100%; margin-left: 0; }
@@ -725,6 +760,7 @@ main { position: relative; z-index: 2; max-width: 1160px; min-height: calc(100vh
           <h3>Passages</h3>
           <input type="search" class="recherche" id="g-recherche" placeholder="Rechercher un candidat ou une référence" aria-label="Rechercher un candidat ou une référence">
         </div>
+        <p class="b-statut" id="g-statut" role="status" hidden></p>
         <div class="liste" id="g-liste"></div>
       </div>
 
@@ -822,9 +858,15 @@ const CONFIG = {
   const $ = (id) => document.getElementById(id);
   const VUES = ['vue-accueil', 'vue-identite', 'vue-question', 'vue-envoi', 'vue-fin', 'vue-elimine', 'vue-gerance'];
   const LETTRES = ['A', 'B', 'C', 'D', 'E', 'F'];
-  const FILTRE_DE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'En cours': 'encours', 'Interrompu': 'encours' };
-  const TEINTE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'En cours': 'encours', 'Interrompu': 'interrompu' };
-  const STATS = [['tous', 'Passages'], ['reussi', 'Réussis'], ['echoue', 'Échoués'], ['elimine', 'Éliminés'], ['encours', 'En cours']];
+  const FILTRE_DE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'Triche ?': 'triche', 'Triche': 'triche', 'En cours': 'encours', 'Interrompu': 'encours' };
+  const TEINTE = { 'Réussi': 'reussi', 'Échoué': 'echoue', 'Éliminé': 'elimine', 'Triche ?': 'triche', 'Triche': 'triche', 'En cours': 'encours', 'Interrompu': 'interrompu' };
+  const STATS = [['tous', 'Passages'], ['reussi', 'Réussis'], ['echoue', 'Échoués'], ['elimine', 'Éliminés'], ['triche', 'Triche ?'], ['encours', 'En cours']];
+  // Liste des passages rangée par catégorie (filtre « Passages ») ; « Triche ? » en tête, à vérifier.
+  const GROUPES = [['triche', 'Triche ?'], ['encours', 'En cours'], ['reussi', 'Réussis'], ['echoue', 'Échoués'], ['elimine', 'Éliminés']];
+  const RESULTATS_GERANCE = [['Réussi', 'reussi'], ['Échoué', 'echoue'], ['Éliminé', 'elimine'], ['Triche', 'triche']];
+  const SORTIES_MAX = 1; // au-delà (2 sorties ou plus), le passage est signalé « Triche ? »
+  const SEUIL_TRICHE = 'plus d’une sortie de page';
+  const CLE_REPLIS = 'seimei-groupes-replies';
   const INTERRUPTION_MS = 10 * 60 * 1000;
   const CIRCONFERENCE = 2 * Math.PI * 52;
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -847,9 +889,12 @@ const CONFIG = {
     minuteur: 0,
     flash: 0,
     sorties: 0,
+    sortiesDetail: [],   // chaque sortie de page : { q: question (-1 = compte à rebours), t: départ, ms: temps hors de la page }
+    enQuestion: false,
     gerance: {
       code: null, donnees: null, passages: [], onglet: 'resultats',
       filtre: 'tous', recherche: '', ouvert: null, aSupprimer: null,
+      replis: lireReplis(), brouillon: null, decisionOk: null, montrer: null,
       questions: null, banqueErreur: null, liste: 'std', theme: 'tous', rechercheQ: '', edition: null, qASupprimer: null,
       secondesEnregistrees: null,
     },
@@ -908,6 +953,22 @@ const CONFIG = {
 
   function attendre(ms) {
     return new Promise((fin) => setTimeout(fin, ms));
+  }
+
+  // Groupes repliés de la liste des passages, gardés dans ce navigateur (confort seulement).
+  function lireReplis() {
+    try {
+      const v = JSON.parse(localStorage.getItem(CLE_REPLIS) || '[]');
+      return new Set(Array.isArray(v) ? v : []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  function ecrireReplis(replis) {
+    try {
+      localStorage.setItem(CLE_REPLIS, JSON.stringify(Array.from(replis)));
+    } catch (e) { /* stockage indisponible : tant pis */ }
   }
 
   // Hauteur réelle de l’en-tête collant : le chrono se colle juste en dessous.
@@ -1018,7 +1079,8 @@ const CONFIG = {
 
   // ── Déroulé de l’examen ───────────────────────────────────────────────────
   async function lancerExamen(passage) {
-    Object.assign(etat, { passage: passage, index: 0, reponses: [], choix: null, enCours: true, tempsEcoule: false, sorties: 0 });
+    Object.assign(etat, { passage: passage, index: 0, reponses: [], choix: null, enCours: true, tempsEcoule: false,
+      sorties: 0, sortiesDetail: [], enQuestion: false });
     document.body.classList.add('en-examen');
     $('en-cours-nom').textContent = etat.candidat.prenom + ' ' + etat.candidat.nom;
     $('en-cours').hidden = false;
@@ -1056,6 +1118,7 @@ const CONFIG = {
 
   function afficherQuestion() {
     const q = etat.passage.questions[etat.index];
+    etat.enQuestion = true;
     $('q-verif').hidden = true;
     $('q-num').textContent = deux(etat.index + 1);
     $('q-elim').hidden = q.type !== 'elim';
@@ -1166,7 +1229,7 @@ const CONFIG = {
     $('q-verif-texte').textContent = 'Vérification de la réponse…';
     $('btn-reverifier').hidden = true;
     try {
-      const res = await appel('repondre_eliminatoire', {
+      const res = await appelAvecSorties('repondre_eliminatoire', {
         p_id: etat.passage.id, p_index: index, p_choix: reponse.choix, p_ms: reponse.ms, p_sorties: etat.sorties,
       });
       voile.hidden = true;
@@ -1225,9 +1288,29 @@ const CONFIG = {
     }
   });
 
+  // Sorties de page : on note la question à l’écran et, au retour, le temps passé ailleurs.
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && etat.enCours) etat.sorties += 1;
+    if (!etat.enCours) return;
+    if (document.hidden) {
+      etat.sorties += 1;
+      etat.sortiesDetail.push({ q: etat.enQuestion ? etat.index : -1, t: Date.now(), ms: null });
+    } else {
+      const s = etat.sortiesDetail[etat.sortiesDetail.length - 1];
+      if (s && s.ms === null) s.ms = Date.now() - s.t;
+    }
   });
+
+  // Les appels qui terminent l’examen envoient aussi le détail des sorties ;
+  // une base où schema.sql n’a pas encore été relancé reçoit l’appel sans ce détail.
+  async function appelAvecSorties(nom, args) {
+    const detail = etat.sortiesDetail.map((s) => ({ q: s.q, ms: s.ms }));
+    try {
+      return await appel(nom, Object.assign({}, args, { p_sorties_detail: detail }));
+    } catch (e) {
+      if (/pas encore installée/.test(e.message)) return appel(nom, args);
+      throw e;
+    }
+  }
   window.addEventListener('beforeunload', (ev) => {
     if (etat.enCours) {
       ev.preventDefault();
@@ -1243,7 +1326,7 @@ const CONFIG = {
     $('envoi-texte').hidden = false;
     $('envoi-titre').textContent = 'Transmission de vos réponses…';
     try {
-      const res = await appel('terminer_examen', { p_id: etat.passage.id, p_reponses: etat.reponses, p_sorties: etat.sorties });
+      const res = await appelAvecSorties('terminer_examen', { p_id: etat.passage.id, p_reponses: etat.reponses, p_sorties: etat.sorties });
       document.body.classList.remove('en-examen');
       $('en-cours').hidden = true;
       mesurerTete();
@@ -1322,7 +1405,9 @@ const CONFIG = {
 
   function verrouiller() {
     Object.assign(etat.gerance, { code: null, donnees: null, passages: [], ouvert: null, aSupprimer: null,
+      brouillon: null, decisionOk: null, montrer: null,
       questions: null, banqueErreur: null, edition: null, qASupprimer: null });
+    $('g-statut').hidden = true;
     $('g-liste').replaceChildren();
     $('b-liste').replaceChildren();
     $('editeur').hidden = true;
@@ -1361,14 +1446,23 @@ const CONFIG = {
     rendreListe();
   });
 
-  function statutAffiche(p, maintenant) {
-    if (p.statut === 'Terminé') return p.resultat || 'Terminé';
-    return maintenant - (p.debut || 0) > INTERRUPTION_MS ? 'Interrompu' : 'En cours';
+  // Statut calculé : « Triche ? » remplace le résultat au-delà d’une sortie de page (SORTIES_MAX).
+  function statutCalcule(p, maintenant) {
+    if (p.statut !== 'Terminé') return maintenant - (p.debut || 0) > INTERRUPTION_MS ? 'Interrompu' : 'En cours';
+    if (p.sorties > SORTIES_MAX) return 'Triche ?';
+    return p.resultat || 'Terminé';
   }
 
   function preparerPassages(passages) {
     const maintenant = Date.now();
-    const liste = passages.map((p) => Object.assign({}, p, { affiche: statutAffiche(p, maintenant), cle: normaliser(p.prenom + ' ' + p.nom) }));
+    const liste = passages.map((p) => {
+      const calcule = statutCalcule(p, maintenant);
+      const affiche = p.resultatGerance || calcule; // la décision de la gérance passe avant tout
+      return Object.assign({}, p, {
+        calcule: calcule, affiche: affiche, cat: FILTRE_DE[affiche] || 'encours', teinte: 't-' + (TEINTE[affiche] || 'interrompu'),
+        suspect: p.statut === 'Terminé' && p.sorties > SORTIES_MAX, cle: normaliser(p.prenom + ' ' + p.nom),
+      });
+    });
     const compte = {};
     liste.slice().sort((a, b) => (a.debut || 0) - (b.debut || 0)).forEach((p) => {
       compte[p.cle] = (compte[p.cle] || 0) + 1;
@@ -1420,17 +1514,14 @@ const CONFIG = {
       $('g-sous').textContent = 'Chaque examen tire ' + d.nbElim + ' questions éliminatoires et ' + d.nbQuestions + ' questions non éliminatoires parmi les questions actives.';
     } else {
       $('g-titre').textContent = 'Résultats des examens';
-      $('g-sous').textContent = 'Réussite : au moins ' + d.seuil + ' bonnes réponses sur ' + d.nbQuestions + ' aux questions non éliminatoires, sans aucune erreur aux ' + d.nbElim + ' questions éliminatoires.';
+      $('g-sous').textContent = 'Réussite : au moins ' + d.seuil + ' bonnes réponses sur ' + d.nbQuestions + ' aux questions non éliminatoires, sans aucune erreur aux ' + d.nbElim + ' questions éliminatoires. « Triche ? » : ' + SEUIL_TRICHE + ' pendant l’examen.';
     }
   }
 
   function rendreStats() {
     const g = etat.gerance;
-    const nb = { tous: g.passages.length, reussi: 0, echoue: 0, elimine: 0, encours: 0 };
-    g.passages.forEach((p) => {
-      const f = FILTRE_DE[p.affiche];
-      if (f) nb[f] += 1;
-    });
+    const nb = { tous: g.passages.length, reussi: 0, echoue: 0, elimine: 0, triche: 0, encours: 0 };
+    g.passages.forEach((p) => { nb[p.cat] += 1; });
     $('g-stats').replaceChildren(...STATS.map(([cle, libelle]) => h('button', {
       type: 'button', class: 'stat t-' + cle, 'aria-pressed': String(g.filtre === cle),
       onclick: () => { g.filtre = cle; rendreStats(); rendreListe(); },
@@ -1453,8 +1544,10 @@ const CONFIG = {
       boite.replaceChildren(h('p', { class: 'vide-graphe' }, 'Le graphique apparaîtra après le premier examen terminé.'));
       return;
     }
-    const reussis = finis.filter((p) => p.resultat === 'Réussi').length;
-    $('g-taux').replaceChildren(Math.round((100 * reussis) / finis.length) + ' %', h('small', null, 'de réussite'));
+    // taux sur les résultats retenus : décisions de la gérance comprises, « Triche ? » non compté comme réussi
+    const conclus = g.passages.filter((p) => p.statut === 'Terminé' || p.resultatGerance);
+    const reussis = conclus.filter((p) => p.cat === 'reussi').length;
+    $('g-taux').replaceChildren(Math.round((100 * reussis) / conclus.length) + ' %', h('small', null, 'de réussite'));
     if (!termines.length) {
       boite.replaceChildren(h('p', { class: 'vide-graphe' }, 'Aucun examen complet pour l’instant.'), noteArretes);
       return;
@@ -1523,17 +1616,74 @@ const CONFIG = {
     const d = g.donnees;
     if (!d) return;
     const recherche = normaliser(g.recherche);
-    const visibles = g.passages.filter((p) => (g.filtre === 'tous' || FILTRE_DE[p.affiche] === g.filtre) &&
+    const visibles = g.passages.filter((p) => (g.filtre === 'tous' || p.cat === g.filtre) &&
       (!recherche || normaliser([p.prenom, p.nom, p.prenom, p.id].join(' ')).includes(recherche) ||
         normaliser(p.nom + ' ' + p.prenom).includes(recherche)));
     const liste = $('g-liste');
+    // après une décision : le groupe où arrive le passage est déplié, puis on le remet sous les yeux
+    const montrer = g.montrer && g.passages.find((p) => p.id === g.montrer);
+    if (montrer && g.replis.delete(montrer.cat)) ecrireReplis(g.replis);
+    const groupee = g.filtre === 'tous' && visibles.length > 0;
+    liste.classList.toggle('groupee', groupee);
     if (!g.passages.length) {
       liste.replaceChildren(h('p', { class: 'vide' }, 'Aucun examen pour l’instant. Chaque candidat apparaîtra ici dès qu’il aura cliqué sur « Commencer le test ».'));
     } else if (!visibles.length) {
       liste.replaceChildren(h('p', { class: 'vide' }, 'Aucun passage ne correspond à ce filtre ou à cette recherche.'));
+    } else if (groupee) {
+      liste.replaceChildren(...GROUPES.map(([cle, titre]) => groupePassages(cle, titre, visibles.filter((p) => p.cat === cle), d, !!recherche)));
     } else {
       liste.replaceChildren(...visibles.map((p) => blocPassage(p, d)));
     }
+    if (montrer) {
+      g.montrer = null;
+      const bloc = liste.querySelector('[data-passage="' + CSS.escape(montrer.id) + '"]');
+      if (bloc) {
+        (bloc.querySelector('.decision') || bloc).scrollIntoView({ block: 'center', behavior: mouvementReduit.matches ? 'auto' : 'smooth' });
+        (bloc.querySelector('.decision .segment[aria-pressed="true"]') || bloc.querySelector('.p-ligne')).focus({ preventScroll: true });
+      }
+    }
+    if (g.decisionOk) { // le passage décidé n’est plus dans le filtre choisi : on confirme au-dessus de la liste
+      statutListe((montrer ? montrer.prenom + ' ' + montrer.nom + ' · ' : '') + g.decisionOk.texte);
+      g.decisionOk = null;
+    }
+  }
+
+  let minuteurStatutListe = 0;
+
+  function statutListe(texte) {
+    const s = $('g-statut');
+    s.textContent = texte;
+    s.hidden = false;
+    clearTimeout(minuteurStatutListe);
+    minuteurStatutListe = setTimeout(() => { s.hidden = true; }, 5000);
+    s.scrollIntoView({ block: 'nearest', behavior: mouvementReduit.matches ? 'auto' : 'smooth' });
+  }
+
+  // Un groupe de la liste (Triche ?, En cours, Réussis…) : en-tête cliquable pour le replier.
+  function groupePassages(cle, titre, passages, d, recherche) {
+    const g = etat.gerance;
+    if (!passages.length) return '';
+    const replie = !recherche && g.replis.has(cle); // une recherche montre toujours ce qu’elle trouve
+    const aVerifier = cle === 'triche' ? passages.filter((p) => !p.resultatGerance).length : 0;
+    const aide = cle === 'triche'
+      ? (aVerifier ? aVerifier + ' à vérifier · ' + SEUIL_TRICHE : 'triche confirmée par la gérance')
+      : '';
+    const corpsId = 'groupe-' + cle;
+    return h('section', { class: 'groupe t-' + cle },
+      h('button', {
+        type: 'button', class: 'groupe-tete', 'aria-expanded': String(!replie), 'aria-controls': corpsId,
+        onclick: () => {
+          if (g.replis.has(cle)) g.replis.delete(cle); else g.replis.add(cle);
+          ecrireReplis(g.replis);
+          rendreListe();
+        },
+      },
+        h('span', { class: 'groupe-titre' }, titre),
+        h('span', { class: 'groupe-nb' }, passages.length),
+        aide && h('span', { class: 'groupe-aide' }, aide),
+        h('span', { class: 'groupe-trait', 'aria-hidden': 'true' }),
+        h('span', { class: 'chevron', 'aria-hidden': 'true' }, '›')),
+      h('div', { class: 'groupe-corps', id: corpsId, hidden: replie }, passages.map((p) => blocPassage(p, d))));
   }
 
   function initiales(p) {
@@ -1544,13 +1694,13 @@ const CONFIG = {
     const g = etat.gerance;
     const ouvert = g.ouvert === p.id;
     const termine = p.statut === 'Terminé';
-    const teinte = 't-' + (TEINTE[p.affiche] || 'interrompu');
+    const teinte = p.teinte;
     const signalements = [p.sorties > 0 ? p.sorties + ' sortie' + (p.sorties > 1 ? 's' : '') + ' de page' : '', p.alertes].filter(Boolean).join(' · ');
     const elims = termine ? p.detail.filter((r) => r.type === 'elim') : [];
     const sous = [dateCourte(p.debut), p.nbTentatives > 1 ? 'tentative ' + p.tentative + '/' + p.nbTentatives : ''].filter(Boolean).join(' · ');
     const ligne = h('button', {
       type: 'button', class: 'p-ligne', 'aria-expanded': String(ouvert),
-      onclick: () => { g.ouvert = ouvert ? null : p.id; g.aSupprimer = null; rendreListe(); },
+      onclick: () => { g.ouvert = ouvert ? null : p.id; g.aSupprimer = null; g.brouillon = null; rendreListe(); },
     },
       h('span', { class: 'p-avatar', 'aria-hidden': 'true' }, initiales(p)),
       h('span', { class: 'p-qui' }, h('strong', null, p.prenom + ' ' + p.nom), h('small', null, sous)),
@@ -1560,12 +1710,14 @@ const CONFIG = {
       h('span', { class: 'p-elim', title: termine ? 'Éliminatoires : ' + p.elim + '/' + elims.length : null },
         elims.map((r) => h('i', { class: r.correct ? null : 'ko' })),
         termine ? h('span', { class: 'sr' }, 'Éliminatoires : ' + p.elim + ' sur ' + elims.length) : ''),
-      h('span', { class: 'pill ' + teinte }, p.affiche),
+      h('span', { class: 'pill ' + teinte, title: p.resultatGerance ? 'Résultat choisi par la gérance' : p.suspect ? p.sorties + ' sorties de page' : null },
+        p.affiche, p.resultatGerance && h('span', { class: 'pill-decide', 'aria-hidden': 'true' }, '✎'),
+        p.resultatGerance && h('span', { class: 'sr' }, ' (décision de la gérance)')),
       h('span', { class: 'saut', 'aria-hidden': 'true' }),
       h('span', { class: 'p-duree' }, termine ? duree(p.duree) : ''),
       h('span', { class: 'p-alerte', title: signalements || null }, signalements ? [h('span', { 'aria-hidden': 'true' }, '⚠'), h('span', { class: 'sr' }, signalements)] : ''),
       h('span', { class: 'chevron', 'aria-hidden': 'true' }, '›'));
-    const bloc = h('div', { class: 'passage ' + teinte + (ouvert ? ' ouvert' : '') }, ligne);
+    const bloc = h('div', { class: 'passage ' + teinte + (ouvert ? ' ouvert' : ''), 'data-passage': p.id }, ligne);
     if (ouvert) bloc.append(detailPassage(p));
     return bloc;
   }
@@ -1574,9 +1726,43 @@ const CONFIG = {
     return h('div', null, h('dt', null, terme), h('dd', null, valeur));
   }
 
+  // Sorties de page regroupées par question (clé : rang de la question à partir de 0, -1 = compte à rebours).
+  function sortiesParQuestion(p) {
+    const parQ = new Map();
+    (Array.isArray(p.sortiesDetail) ? p.sortiesDetail : []).forEach((s) => {
+      const e = parQ.get(s.q) || { q: s.q, n: 0, ms: 0, inconnu: false };
+      e.n += 1;
+      if (typeof s.ms === 'number') e.ms += s.ms;
+      else e.inconnu = true; // le candidat n’était pas encore revenu sur la page à l’envoi
+      parQ.set(s.q, e);
+    });
+    return parQ;
+  }
+
+  function texteSorties(p, parQ) {
+    if (!p.sorties) return 'Aucune';
+    if (!parQ.size) return p.sorties + ' (questions non notées)'; // passages d’avant le suivi par question
+    const ou = Array.from(parQ.values()).sort((a, b) => a.q - b.q)
+      .map((e) => (e.q < 0 ? 'compte à rebours' : 'question ' + (e.q + 1)) + (e.n > 1 ? ' ×' + e.n : ''));
+    return p.sorties + ' : ' + ou.join(', ');
+  }
+
+  function tempsDehors(e) {
+    if (e.inconnu) return e.ms >= 1000 ? 'au moins ' + duree(e.ms / 1000) : 'durée inconnue';
+    return e.ms < 1000 ? 'moins d’1 s' : duree(e.ms / 1000);
+  }
+
+  // Ce que donne la correction seule, sans la décision de la gérance.
+  function texteCalcule(p) {
+    if (p.statut !== 'Terminé') return p.calcule === 'Interrompu' ? 'examen interrompu, jamais envoyé' : 'examen en cours';
+    const score = p.arrete ? 'arrêté aux éliminatoires' : p.score + '/' + etat.gerance.donnees.nbQuestions;
+    return (p.resultat || 'Terminé') + ' (' + score + ')' + (p.suspect ? ', signalé « Triche ? »' : '');
+  }
+
   function detailPassage(p) {
     const g = etat.gerance;
     const termine = p.statut === 'Terminé';
+    const parQ = sortiesParQuestion(p);
     const detail = h('div', { class: 'p-detail' },
       h('dl', { class: 'meta' },
         meta('Référence', h('code', null, p.id)),
@@ -1584,16 +1770,22 @@ const CONFIG = {
         meta('Fin', dateLongue(p.fin)),
         meta('Durée', termine ? duree(p.duree) : '—'),
         meta('Temps par question', p.secondes ? p.secondes + ' s (éliminatoires : ' + (p.secondes + bonusElim(g.donnees)) + ' s)' : '—'),
-        meta('Sorties de page', String(p.sorties))));
+        meta('Sorties de page', texteSorties(p, parQ))));
 
+    if (p.suspect && !p.resultatGerance) {
+      detail.append(h('p', { class: 'alerte triche' }, h('span', { 'aria-hidden': 'true' }, '疑'),
+        h('span', null, h('strong', null, 'Triche ? '), p.sorties + ' sorties de page pendant l’examen. ' +
+          'Regarde à quelles questions et combien de temps, puis choisis le résultat à retenir.')));
+    }
     if (p.alertes) detail.append(h('p', { class: 'alerte' }, h('span', { 'aria-hidden': 'true' }, '⚠'), h('span', null, p.alertes)));
     if (p.arrete) {
       detail.append(h('p', { class: 'alerte' }, h('span', { 'aria-hidden': 'true' }, '断'),
         h('span', null, 'Examen arrêté net : mauvaise réponse à la question éliminatoire n°' + p.detail.length + '. Les questions suivantes n’ont pas été posées.')));
     }
+    if (p.calcule !== 'En cours' || p.resultatGerance) detail.append(blocDecision(p));
 
     if (!termine) {
-      detail.append(h('p', { class: 'note' }, p.affiche === 'Interrompu'
+      detail.append(h('p', { class: 'note' }, p.calcule === 'Interrompu'
         ? 'Examen commencé mais jamais envoyé (page fermée ou connexion perdue). Aucune réponse n’a été enregistrée.'
         : 'Le candidat est en train de passer l’examen. Actualisez dans quelques minutes.'));
     } else {
@@ -1608,7 +1800,7 @@ const CONFIG = {
         detail.append(h('div', { class: 'themes' }, h('span', { class: 'themes-lib' }, 'Par thème'),
           Object.keys(themes).map((t) => h('span', { class: 'theme-chip' + (themes[t].ok < themes[t].n ? ' faible' : '') }, t + ' ', h('b', null, themes[t].ok + '/' + themes[t].n)))));
       }
-      detail.append(h('ol', { class: 'reponses' }, p.detail.map(ligneReponse)));
+      detail.append(h('ol', { class: 'reponses' }, p.detail.map((r, i) => ligneReponse(r, i, parQ.get(i)))));
     }
 
     const actions = h('div', { class: 'detail-actions' });
@@ -1624,8 +1816,72 @@ const CONFIG = {
     return detail;
   }
 
-  // Une question du passage : les choix dans l’ordre où le candidat les a vus, sa réponse et la bonne.
-  function ligneReponse(r, i) {
+  // Changer le résultat d’un passage. La décision passe avant le résultat calculé, qui reste gardé :
+  // « Revenir au résultat calculé » efface la décision.
+  function blocDecision(p) {
+    const g = etat.gerance;
+    if (!g.brouillon || g.brouillon.id !== p.id) g.brouillon = { id: p.id, resultat: p.resultatGerance || null, note: p.noteGerance || '' };
+    const b = g.brouillon;
+    const statut = h('p', { class: 'decision-statut', role: 'status' });
+    if (g.decisionOk && g.decisionOk.id === p.id) {
+      statut.textContent = g.decisionOk.texte;
+      g.decisionOk = null;
+      setTimeout(() => { statut.textContent = ''; }, 5000);
+    }
+    const enregistrer = h('button', { type: 'button', class: 'btn btn-chakra',
+      onclick: () => decider(p, b.resultat, b.note, enregistrer, statut) }, 'Enregistrer');
+    const majBouton = () => {
+      enregistrer.disabled = !b.resultat || (b.resultat === p.resultatGerance && b.note.trim() === (p.noteGerance || ''));
+    };
+    const choix = h('div', { class: 'segments', role: 'group', 'aria-label': 'Résultat à retenir' },
+      RESULTATS_GERANCE.map(([valeur, cle]) => h('button', {
+        type: 'button', class: 'segment t-' + cle, 'aria-pressed': String(b.resultat === valeur),
+        onclick: (ev) => {
+          b.resultat = valeur;
+          Array.from(choix.children).forEach((s) => s.setAttribute('aria-pressed', String(s === ev.currentTarget)));
+          majBouton();
+        },
+      }, valeur)));
+    const motif = h('label', { class: 'champ decision-motif' },
+      h('input', { type: 'text', maxlength: 300, placeholder: ' ', value: b.note, autocomplete: 'off',
+        oninput: (ev) => { b.note = ev.target.value; majBouton(); } }),
+      h('span', null, 'Motif (facultatif)'));
+    majBouton();
+    return h('div', { class: 'decision' },
+      h('div', { class: 'decision-tete' },
+        h('h4', null, p.resultatGerance ? 'Résultat retenu par la gérance' : 'Changer le résultat'),
+        h('span', { class: 'note' }, 'Calculé : ' + texteCalcule(p) + (p.decideLe ? ' · décision du ' + dateCourte(p.decideLe) : ''))),
+      choix,
+      h('div', { class: 'decision-ligne' }, motif,
+        p.resultatGerance && h('button', { type: 'button', class: 'btn btn-sobre',
+          onclick: (ev) => decider(p, null, '', ev.currentTarget, statut) }, 'Revenir au résultat calculé'),
+        enregistrer),
+      statut);
+  }
+
+  async function decider(p, resultat, note, bouton, statut) {
+    const g = etat.gerance;
+    bouton.disabled = true;
+    statut.classList.remove('ko');
+    statut.textContent = 'Enregistrement…';
+    try {
+      await appel('modifier_resultat', { p_code: g.code, p_id: p.id, p_resultat: resultat, p_note: resultat ? note.trim() : '' });
+      g.brouillon = null;
+      g.decisionOk = { id: p.id, texte: resultat ? '✓ Résultat enregistré : ' + resultat + '.' : '✓ Retour au résultat calculé.' };
+      g.montrer = p.id;
+      await actualiser();
+    } catch (e) {
+      bouton.disabled = false;
+      statut.classList.add('ko');
+      statut.textContent = /pas encore installée/.test(e.message)
+        ? 'Fonction pas encore activée : relance schema.sql dans Supabase (SQL Editor → Run).'
+        : 'Enregistrement impossible : ' + e.message;
+    }
+  }
+
+  // Une question du passage : les choix dans l’ordre où le candidat les a vus, sa réponse et la bonne,
+  // et les sorties de page faites pendant cette question.
+  function ligneReponse(r, i, sortie) {
     const vide = r.reponse == null;
     const verdict = vide ? 'Sans réponse' : r.correct ? 'Bonne réponse' : 'Mauvaise réponse';
     let corps;
@@ -1647,12 +1903,14 @@ const CONFIG = {
         !r.correct && h('p', { class: 'rep-bonne' }, 'Bonne réponse : ', h('strong', null, typo(r.bonne))),
       ];
     }
-    return h('li', { class: 'rep ' + (vide ? 'rep-vide' : r.correct ? 'rep-ok' : 'rep-ko') },
+    return h('li', { class: 'rep ' + (vide ? 'rep-vide' : r.correct ? 'rep-ok' : 'rep-ko') + (sortie ? ' rep-quittee' : '') },
       h('span', { class: 'rep-num' }, deux(i + 1)),
       h('div', { class: 'rep-tete' },
         r.type === 'elim' && h('span', { class: 'badge-elim' }, 'Éliminatoire'),
         h('span', { class: 'q-theme' }, r.theme),
         h('span', { class: 'rep-verdict' }, verdict),
+        sortie && h('span', { class: 'rep-sortie', title: 'Temps passé hors de la page pendant cette question' },
+          '⚠ Page quittée' + (sortie.n > 1 ? ' ×' + sortie.n : '') + ' · ' + tempsDehors(sortie)),
         h('span', { class: 'rep-temps' }, vide ? 'Temps écoulé' : secondes(r.ms))),
       h('p', { class: 'rep-q' }, typo(r.question)),
       corps);
